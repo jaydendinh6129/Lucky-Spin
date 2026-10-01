@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7f1d1d"/>
+      <stop offset="0.55" stop-color="#b45309"/>
+      <stop offset="1" stop-color="#ca8a04"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g transform="translate(256 272)">
+    <circle r="196" fill="#0d0d14"/>
+    <circle r="190" fill="none" stroke="#FFD93D" stroke-opacity="0.6" stroke-width="3"/>
+    <g>
+      <path d="M0 0 L0 -170 A170 170 0 0 1 147.2 -85 Z" fill="#FF4757"/>
+      <path d="M0 0 L147.2 -85 A170 170 0 0 1 147.2 85 Z" fill="#FFA502"/>
+      <path d="M0 0 L147.2 85 A170 170 0 0 1 0 170 Z" fill="#FF6348"/>
+      <path d="M0 0 L0 170 A170 170 0 0 1 -147.2 85 Z" fill="#E74C3C"/>
+      <path d="M0 0 L-147.2 85 A170 170 0 0 1 -147.2 -85 Z" fill="#F39C12"/>
+      <path d="M0 0 L-147.2 -85 A170 170 0 0 1 0 -170 Z" fill="#FF7F50"/>
+      <circle r="170" fill="none" stroke="#fff" stroke-opacity="0.9" stroke-width="4"/>
+      <g stroke="#fff" stroke-opacity="0.8" stroke-width="3">
+        <line x1="0" y1="0" x2="0" y2="-170"/><line x1="0" y1="0" x2="147.2" y2="-85"/><line x1="0" y1="0" x2="147.2" y2="85"/>
+        <line x1="0" y1="0" x2="0" y2="170"/><line x1="0" y1="0" x2="-147.2" y2="85"/><line x1="0" y1="0" x2="-147.2" y2="-85"/>
+      </g>
+    </g>
+    <circle r="44" fill="#fff"/>
+    <circle r="34" fill="#FFD93D"/>
+    <circle r="10" fill="#fff"/>
+  </g>
+  <path d="M256 160 L216 70 Q256 48 296 70 Z" fill="#FFD93D" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+</svg>

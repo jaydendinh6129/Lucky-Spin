@@ -1,0 +1,14 @@
+{
+  "name": "Party Games",
+  "short_name": "Party Games",
+  "description": "Spin, battle, quiz and draw your fate — a premium party-game console.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#7f1d1d",
+  "theme_color": "#7f1d1d",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
