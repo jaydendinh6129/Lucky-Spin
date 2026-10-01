@@ -187,9 +187,9 @@ sequenceDiagram
 ## 10. Symbol index (every top-level declaration, per file)
 
 <!-- INDEX:BEGIN -->
-_39/39 files · 249 symbols · entries marked "pending verification" have not yet had their grep cross-check._
+_39 files · 249 top-level symbols. Each file was read by one agent and independently cross-checked against `grep` of its declarations by another; the check added 0 missed entries and corrected 38 descriptions (marked *verified*)._
 
-### `js/engine/util.js` <sub>(verified)</sub>
+### `js/engine/util.js`
 
 Foundation module for the no-build React party-spinner app: destructures React hooks into globals, defines app-wide constants/limits, and provides pure helpers (math, random, string, wheel geometry, color, formatting, share-URL encoding, clipboard, vibration) plus localStorage persistence used by every other file.
 
@@ -243,7 +243,7 @@ Foundation module for the no-build React party-spinner app: destructures React h
 > **Note:** Must be loaded before every other script: it defines the React hook globals (useState etc.) and constants everyone uses. It also references SAMPLE_ITEMS and THEMES, which are defined in other files; these are only used inside function bodies (isSampleList, readSharedWheel), so load order relative to those files only matters at call time, not at load time. REDUCED_MOTION is evaluated once at load and does not react to later OS changes. Share-link format: hash w= carrying b64url JSON with keys i (items) and t (theme key).
 
 
-### `js/data/themes.js` <sub>(verified)</sub>
+### `js/data/themes.js`
 
 Pure data file: defines the 9 wheel themes (visual config + monetisation flags), their en/vi display text, per-theme sample wheel items, and the Truth-or-Dare prompt pools. No functions; everything is a plain object literal consumed by other files as globals.
 
@@ -257,7 +257,7 @@ Pure data file: defines the 9 wheel themes (visual config + monetisation flags),
 > **Note:** All four objects are indexed by the same theme keys and by lang 'en'/'vi'; adding a theme requires adding entries to THEMES, THEME_TEXT (both langs) and SAMPLE_ITEMS (both langs) or lookups will be undefined. Pro themes (friends/college/sports) carry extra fields plan/skin/reveal that the other six do not; reveal references another theme key, so consumers must not assume it's self-referential. office.floaters is an empty array (effect 'clean'). File has no dependencies on other globals and declares no functions.
 
 
-### `js/data/i18n.js` <sub>(verified)</sub>
+### `js/data/i18n.js`
 
 Defines all UI strings for the app in two locales (en / vi) as the global I18N dictionary, plus the LANGS list used by the language picker. Consumers select a locale object with I18N[lang] (conventionally bound to t) and read keys directly.
 
@@ -269,7 +269,7 @@ Defines all UI strings for the app in two locales (en / vi) as the global I18N d
 > **Note:** 1) Load order (index.html): util.js loads before i18n.js, so MAX_ITEMS is safe to use eagerly in maxReached. plans.js loads AFTER i18n.js, so PLAN_LABEL is only safe because it is referenced inside arrow functions (availableWith, upgradeTo, devSwitched) that run at render time — do not use PLAN_LABEL (or anything from later files) at the top level of I18N. 2) When adding a key, add it to BOTH en and vi; there is no fallback to English for a missing vi key, so a missing key renders undefined. 3) Value types are mixed: plain strings, template functions (e.g. itemsCount(n,d), playersRange(a,b)), and nested objects (reactionLabels, difficultyLabels, scoringLabels, planTag, planCards, upgrade, compare, logoErrors) — callers must know which shape they are reading. 4) The key done is declared twice in each locale (line 17 and line 67, same value); the later one wins silently. Several keys (venueName, venueMode, bigScreen, qrJoin, venueStats) exist both at top level and inside compare with slightly different wording — intentional, not a bug. 5) app.js guards the initial language with I18N[initialLang] ? initialLang : 'en'; adding a new locale requires a new I18N entry plus a LANGS entry.
 
 
-### `js/data/challenges.js` <sub>(verified)</sub>
+### `js/data/challenges.js`
 
 Static, bilingual (en/vi) content banks for the party mini-games: Battle/King/Cards challenge list plus prompt lists for the 5-second, don't-laugh and word-chain games. Pure data, no logic.
 
@@ -284,7 +284,7 @@ Static, bilingual (en/vi) content banks for the party mini-games: Battle/King/Ca
 > **Note:** All five names are globals consumed by other files (Battle/King/Cards and the mini-game components); no code here, only data. Challenge ids are shared across en/vi so consumers should look up by id and current language. Every drink: true challenge must keep an alt field — UI relies on it to offer a non-drinking option. vi FIVE_SECOND_PROMPTS is a loose translation (e.g. 'pasta' became 'bún/phở'), not literal.
 
 
-### `js/data/questions.js` <sub>(verified)</sub>
+### `js/data/questions.js`
 
 Static quiz question bank (bilingual en/vi) for the quiz game mode, plus a helper to filter questions by category. Pure data; no React, no dependencies on other files.
 
@@ -296,7 +296,7 @@ Static quiz question bank (bilingual en/vi) for the quiz game mode, plus a helpe
 > **Note:** File has no dependencies on other globals and nothing else in it; it must be loaded before whatever quiz engine calls questionsFor/QUESTIONS. Category ids ('general','beer','music','movies','sports','random') and the 4-option/index-answer shape are implicit contracts with the quiz UI and any I18N category labels. Question ids follow prefix convention g/b/m/f/s + two digits; keep them unique if the engine tracks asked questions by id.
 
 
-### `js/data/cards.js` <sub>(verified)</sub>
+### `js/data/cards.js`
 
 Static card deck data for the cards game: bilingual (en/vi) challenge, truth, dare, wild and chaos cards, per-type display metadata, and a helper that assembles a deck for a given deck key and language.
 
@@ -309,7 +309,7 @@ Static card deck data for the cards game: bilingual (en/vi) challenge, truth, da
 > **Note:** Pure data file, no dependencies on other globals. Wild/chaos effect cards are included twice in their decks (duplicate ids) so dedupe by id is unsafe. Only 'en' and 'vi' are present; buildDeck throws for any other lang or an unknown deckKey (CARD_CONTENT[type] undefined). Effect strings are consumed by js/games/cards.js which applies them as state changes. drink: true cards carry an alt non-drinking text.
 
 
-### `js/data/registry.js` <sub>(verified)</sub>
+### `js/data/registry.js`
 
 Single source of truth for every playable mode/game/theme in the app: ids, icons, plan (free/pro), host component + variant, player range, duration, scoring, difficulty, plus en/vi titles, descriptions and how-to-play text. Drives the sidebar, info popovers, entitlements and the game host.
 
@@ -328,7 +328,7 @@ Single source of truth for every playable mode/game/theme in the app: ids, icons
 > **Note:** Load order matters: this file reads THEMES at top level (GAME_REGISTRY.spinner.games) so js/data/themes (THEMES, THEME_TEXT) must be loaded before registry.js. Theme plan is th.plan \|\| (th.free ? 'free' : 'pro'). Game component strings ('spinner','battle','king','quiz','rps','fiveSecond','dontLaugh','reaction','memory','word','cards') are keys the game host maps to React components; variant/category/deck are per-component sub-selectors. Adding a game requires both a GAME_REGISTRY entry and en+vi entries in GAME_META_TEXT, otherwise gameMeta falls back to the raw id with empty description. Only free games: all spinner themes flagged free, quick-battle, quiz-general, rps, five-second, dont-laugh.
 
 
-### `js/engine/audio.js` <sub>(verified)</sub>
+### `js/engine/audio.js`
 
 Web Audio synth sound layer with no asset files: lazily creates a shared AudioContext + master gain/compressor, provides low-level tone/sweep/noise primitives, and exposes the SFX registry of named sound effects used by the wheel and themes.
 
@@ -346,7 +346,7 @@ Web Audio synth sound layer with no asset files: lazily creates a shared AudioCo
 > **Note:** rand() used by SFX.tick and SFX.slotTick is a global defined in another file (not in audio.js); this file must load after it or those effects throw. AudioContext is created lazily and resumed on each call, so the first sound must be triggered from a user gesture to satisfy browser autoplay policy. tone/sweep/noise silently no-op when getCtx() returns null. All playback goes through _master; there is no volume/mute API exposed here.
 
 
-### `js/engine/effects.js` <sub>(verified)</sub>
+### `js/engine/effects.js`
 
 Celebration visual effects: canvas-confetti bursts, floating emoji particles, and a screen flash, plus a dispatcher that picks a combination of these based on a theme's effect key.
 
@@ -360,7 +360,7 @@ Celebration visual effects: canvas-confetti bursts, floating emoji particles, an
 > **Note:** Relies on CSS classes .float-particle and .flash-overlay (with their keyframe animations) being defined in the stylesheet; REDUCED_MOTION, rand, randInt are globals defined elsewhere (likely a utils/random file); confetti is the canvas-confetti library loaded via script tag and is guarded with a typeof check so the file is safe if the CDN fails. Effect names handled: 'hearts', 'flash', 'clean', anything else falls to default.
 
 
-### `js/engine/randomEngine.js` <sub>(verified)</sub>
+### `js/engine/randomEngine.js`
 
 Shared fair-randomness helpers used by every game: random item/player picking, bracket pairing, a no-repeat "bag" (plus a React hook wrapper), and turn-order stepping that skips eliminated players.
 
@@ -374,7 +374,7 @@ Shared fair-randomness helpers used by every game: random item/player picking, b
 > **Note:** All four names are globals (no-build Babel setup). Depends on util.js being loaded first for randInt/shuffleArr/mod/useRef. createBag's bag uses pool.pop(), so it consumes from the end of the shuffled pool; useBag does not reset when items changes by identity, only when key changes.
 
 
-### `js/engine/scoreEngine.js` <sub>(verified)</sub>
+### `js/engine/scoreEngine.js`
 
 Pure, immutable score/stat helpers for the players array. Every function returns a new array (or a derived list/object) and never mutates the input.
 
@@ -385,7 +385,7 @@ Pure, immutable score/stat helpers for the players array. Every function returns
 > **Note:** Only one top-level declaration (Score). Player objects are expected to have fields id, name, score, wins, losses, streak, bestStreak, eliminated; leaderboard uses name.localeCompare so name must be a string. leaders() ties require equal score AND wins (losses are ignored). removePoints clamps at 0 but addPoints has no cap. resetForGame resets bestStreak too (per-game, not lifetime). No dependencies on other files.
 
 
-### `js/engine/timerEngine.js` <sub>(verified)</sub>
+### `js/engine/timerEngine.js`
 
 Shared timing primitives for the app: a requestAnimationFrame-driven countdown hook (useTimer), a count-up stopwatch hook (useStopwatch), and a seconds formatter. Each hook owns one timer per mounted component and cancels its RAF on unmount.
 
@@ -398,7 +398,7 @@ Shared timing primitives for the app: a requestAnimationFrame-driven countdown h
 > **Note:** useTimer.onDone fires at most once and is cleared by stop()/reset(); calling start() again while running cancels the previous countdown without calling its onDone. pause() is a no-op if not running; resume() is a no-op if running or if nothing was paused (remain == 0). Both hooks rely on React hooks (useState/useRef/useCallback/useEffect) being destructured as globals elsewhere (e.g. from React in another file). Timing uses performance.now() and requestAnimationFrame, so timers effectively pause in background tabs (RAF throttling) — useTimer's end timestamp is absolute so it will catch up, but useStopwatch's displayed ms simply stops updating until the tab is visible.
 
 
-### `js/engine/playerEngine.js` <sub>(verified)</sub>
+### `js/engine/playerEngine.js`
 
 Defines the shared Player data model: constants for colors/avatars/max count, a factory that builds a player with a unique color/avatar, and small pure helpers for normalizing, renaming, removing, looking up players and picking a default selection for a game.
 
@@ -418,7 +418,7 @@ Defines the shared Player data model: constants for colors/avatars/max count, a 
 > **Note:** uid and clip are globals defined in another file (not in this one) and must be loaded before this script. All helpers are pure and return new arrays/objects; none mutate input. normalizePlayer passes all.slice(0, i) as existing, so avatar/color de-duplication only considers earlier players in the array. defaultSelection ignores min.
 
 
-### `js/engine/gameEngine.js` <sub>(verified)</sub>
+### `js/engine/gameEngine.js`
 
 Generic game state machine shared by every mini-game: setup → countdown → challenge → result → (next round \| finished). A game supplies a rules object (countdown, buildRound, resolveRound, checkEnd) and the engine drives rounds, history and the winner; score/streak/elimination logic is delegated to the Score global.
 
@@ -432,7 +432,7 @@ Generic game state machine shared by every mini-game: setup → countdown → ch
 > **Note:** React hooks (useMemo/useReducer/useRef/useCallback) and Score are globals from other files (no imports). countdownSeconds is computed from rules.countdown for the current round (or round 1 in setup) and a value of 0 skips the countdown phase. The reducer is not exported anywhere as a module; all four names are globals. pendingWinner uses rules directly (not the ref), so it reflects the latest render's rules.
 
 
-### `js/engine/sessionEngine.js` <sub>(verified)</sub>
+### `js/engine/sessionEngine.js`
 
 Pure data helpers for a party "session": the roster of players plus per-player cumulative stats and a capped history of games played tonight. No React, no side effects beyond uid()/Date.now().
 
@@ -446,7 +446,7 @@ Pure data helpers for a party "session": the roster of players plus per-player c
 > **Note:** All functions are pure/immutable (spread copies) except for uid()/Date.now() calls. History is hard-capped at 100 entries (newest first). stats is keyed by player id; players removed from session.players keep stale stats entries but are dropped from sessionSummary rows. normalizePlayer and uid are globals defined in other files (likely a player/util module) and must be loaded before this file is used. The entry shape passed to recordGame is documented only in the inline comment on line 11.
 
 
-### `js/subscription/plans.js` <sub>(verified)</sub>
+### `js/subscription/plans.js`
 
 Defines subscription plan tiers (free/pro/max), the feature registry mapping each capability to its minimum plan, and the Entitlements helper the rest of the app uses to check access instead of comparing plan strings directly.
 
@@ -465,7 +465,7 @@ Defines subscription plan tiers (free/pro/max), the feature registry mapping eac
 > **Note:** All declarations are globals shared across files (no-build Babel setup). Other files should never compare plan === 'max' directly; they must go through Entitlements. Game and theme registry items are expected to carry their own plan field for canPlay/requiredPlan. IS_DEV is computed once at load from location, so toggling the dev flag requires a reload. The dev plan switcher component itself is not defined in this file, only the IS_DEV flag.
 
 
-### `js/venue/venue.js` <sub>(verified)</sub>
+### `js/venue/venue.js`
 
 Venue profile model (MAX tier): default venue object, branding gate, logo file validation/downscaling, and applying brand colours as CSS variables.
 
@@ -483,7 +483,7 @@ Venue profile model (MAX tier): default venue object, branding gate, logo file v
 > **Note:** Logo is stored as a data URL (can be large; ≤512px keeps it bounded). Rejection messages come from the caller-supplied errors object, so callers must pass translated strings. Only brand accents are themed; background/typography are not touched.
 
 
-### `js/components/ui.js` <sub>(verified)</sub>
+### `js/components/ui.js`
 
 Shared presentational building blocks for the app: SVG icon registry, small controls (Switch, IconButton, ToolBtn, Kbd), the Toast notification, the sticky app Header, and the Section wrapper used inside the side menu. No state or logic lives here; everything is a stateless component driven by props.
 
@@ -501,7 +501,7 @@ Shared presentational building blocks for the app: SVG icon registry, small cont
 > **Note:** All declarations are globals (no build step), so Icon, Switch, IconButton, ToolBtn, Kbd, Toast, Header, Section are referenced by other files by bare name; renaming any of them breaks callers silently at runtime. Header does not own any state: sound, party and brand are passed in from the app shell. Toast expects the toast object to carry a unique id (used as key to retrigger the toast-in animation).
 
 
-### `js/components/premium.js` <sub>(verified)</sub>
+### `js/components/premium.js`
 
 Premium/subscription UI: plan badge, upgrade modal shown when a locked item is tapped, the full pricing page with comparison table, the Settings plan row, and a dev-only plan switcher.
 
@@ -517,7 +517,7 @@ Premium/subscription UI: plan badge, upgrade modal shown when a locked item is t
 > **Note:** All components receive sub ({ plan }) and t (I18N strings) from the parent; nothing here reads Entitlements/storage directly. Plan ordering and PLAN_LABEL/PLANS/planAtLeast/IS_DEV are globals defined in other files. UpgradeModal is intended never to be shown during gameplay (caller's responsibility). COMPARE_ROWS keys must each exist in t.compare for every language or the table cell renders empty. Pricing shows "$0" only for free; pro/max prices are null (payments not wired yet, see t.paymentsSoon).
 
 
-### `js/components/wheel.js` <sub>(verified)</sub>
+### `js/components/wheel.js`
 
 Visual layers of the spinning wheel: per-theme skin table plus the static Rim, rotating Disk (segments + labels), Gloss overlay, themed Pointer and HubFace art. Pure presentational SVG; no state, no spin logic.
 
@@ -539,7 +539,7 @@ Visual layers of the spinning wheel: per-theme skin table plus the static Rim, r
 > **Note:** Everything is global (no module scope): memo is expected from a const { memo, ... } = React destructure elsewhere, and polar, sectorPath, clamp, segColor, textOn, truncate come from a utils file. SVG gradient ids (rimWood, rimGold, rimObs, rimRose, rimSteel, diskShade, gloss, hubCoin, hubEmber, hubHeart, hubBtn) are hard-coded, so rendering two wheels on one page would collide. Rim/Disk/Gloss are memoized; Disk re-renders only when items or theme reference changes. Decor animations rely on CSS classes (dish, mug, flame, heart-decor, led, bulb, ember-ring, neon-ring, wheel-pointer) defined in the stylesheet. Adding a theme requires an entry in SKINS (or theme.skin pointing at an existing one); unknown themes fall back to lucky.
 
 
-### `js/components/items.js` <sub>(verified)</sub>
+### `js/components/items.js`
 
 Renders the "Items" editing panel for the spinner: quick-add input, bulk textarea editing, chip list of items with per-item remove, utility tool buttons (shuffle/sort/dedupe/numbers/sample/clear), and a restore-eliminated button. All item mutations are delegated to the actions prop supplied by the parent.
 
@@ -550,7 +550,7 @@ Renders the "Items" editing panel for the spinner: quick-add input, bulk textare
 > **Note:** Only one top-level declaration in this file (ItemsPanel); no local globals defined here. Local state: addValue, bulk, draft, numOpen, numN. In bulk mode the textarea draft is seeded from items.join('\n') when toggled on and each keystroke pushes actions.setFromText — the parent owns the parsed list. Chip keys are ${i}-${item} (index-based, so reorders remount chips). numN is stored as a string from the input and parsed with parseInt (fallback 10) at fill time. sample/clear/numbers actions also force bulk mode off.
 
 
-### `js/components/reveals.js` <sub>(verified)</sub>
+### `js/components/reveals.js`
 
 Theme-specific cinematic "reveal" animations played inside the result modal after a spin (cupid, cheers, slot machine, devil, stamp, fireworks), plus the ResultModal component that hosts them and shows winner / truth-or-dare prompt / action buttons.
 
@@ -580,7 +580,7 @@ Theme-specific cinematic "reveal" animations played inside the result modal afte
 > **Note:** All reveal components run their whole choreography in a mount-only useEffect ([] deps) and are mounted only once target is measured, so re-renders of ResultModal must not remount them. Reveal target is in stage coordinates {x,y,w,h,sw,sh}; FireworksReveal instead uses nameRef + viewport coords because rockets live on document.body. ResultModal retries measurement up to 25x25ms because Tailwind CDN styles the card asynchronously on first open. hit is idempotent via hitRef; clicking the card before reveal skips the animation. REDUCED_MOTION disables cinematic mode entirely (falls back to theme.resultEmoji). play(name) sound keys used here must exist in the SFX registry: flutter, creak, twang, heartHit, slide, clink, slotTick, jackpot, coin, giggle, charge, fireHit, thud, bell, whistle, boom. i18n keys used: cheers, jackpot, devilSays, stampText, close, winnerIs, truth, dare, another, eliminatedNote, spinAgain, removeAndSpin, share, tapToSkip. StampSvg uses fixed SVG gradient ids (stampWood/stampSteel) so two instances on one page would collide.
 
 
-### `js/components/modals.js` <sub>(verified)</sub>
+### `js/components/modals.js`
 
 Small overlay/placeholder UI: the Pro upsell modal shown when a locked (pro) item is picked, and the "coming soon" placeholder section for game modes whose gameplay isn't implemented yet.
 
@@ -592,7 +592,7 @@ Small overlay/placeholder UI: the Pro upsell modal shown when a locked (pro) ite
 > **Note:** Only two globals defined here; no top-level consts. Both rely on React hooks (useRef/useEffect) destructured as globals elsewhere, and on the i18n object t having keys proTitle, proBody, gotIt, comingSoon, comingSoonBody, pro, backToSpinner, pickAnother. GamePlaceholder reads MODE_TEXT[lang][mode.id] directly, so every mode id must exist in MODE_TEXT for each language or it throws.
 
 
-### `js/components/game.js` <sub>(verified)</sub>
+### `js/components/game.js`
 
 Shared UI building blocks used by every mini-game: avatars/player chips, the player-selection setup panel, countdown and ring timer, scoreboard, challenge card, host decision buttons, the game frame (GameShell), the end-of-game result screen, an error boundary, and a hook that records a finished game once.
 
@@ -616,7 +616,7 @@ Shared UI building blocks used by every mini-game: avatars/player chips, the pla
 > **Note:** This file declares no consts/hooks imports itself; useState/useRef/useEffect, MAX_PLAYERS, createPlayer/renamePlayer/removePlayer, shuffleArr, ToolBtn, Icon, Score, fmtSeconds and the t (I18N) object must already be defined as globals by earlier-loaded files. PlayerSetup with max===1 behaves as single-select (replaces selection). Countdown captures onDone via ref so changing the callback mid-count is safe. ScoreBoard 'time' metric treats missing bestMs as Infinity (sorted last). GameResult runs celebrate() only on mount (empty deps).
 
 
-### `js/components/sidebar.js` <sub>(verified)</sub>
+### `js/components/sidebar.js`
 
 Left-side slide-in menu (SideMenu) for the party spinner app: game-mode accordion with per-game info popovers, party summary, settings (sound/haptics/eliminate/duration/language/venue/plan), saved wheels, spin history/stats and keyboard shortcuts.
 
@@ -632,7 +632,7 @@ Left-side slide-in menu (SideMenu) for the party spinner app: game-mode accordio
 > **Note:** All declarations are globals (no modules). React hooks (useState, useRef, useEffect, useLayoutEffect, useMemo) are destructured from React in another file and used here as globals. GameInfoPopover is rendered via ReactDOM.createPortal into document.body so sidebar overflow never clips it; its outside-click/Escape listeners are registered in capture phase and Escape calls stopPropagation, so it intercepts the app-level Esc shortcut while open. The haptics SettingRow only renders when 'vibrate' in navigator. The 'inert' attribute is passed as '' / undefined (React 18 string-attr workaround). SideMenu does not persist anything itself; all state is lifted via props/callbacks.
 
 
-### `js/realtime/transport.js` <sub>(verified)</sub>
+### `js/realtime/transport.js`
 
 Real-time message transport between the host screen and players' phones. Exposes one interface over two simultaneous routes: BroadcastChannel (same browser, offline) and PeerJS/WebRTC (other devices, needs internet). Also holds the shared RT event vocabulary, room-code generation and join-URL helpers.
 
@@ -653,7 +653,7 @@ Real-time message transport between the host screen and players' phones. Exposes
 > **Note:** Identity is the from client id in each message, never the connection: a player reachable via both BroadcastChannel and WebRTC shows up as two route ids ('bc:<clientId>' and 'p:<peerId>') but one player; the host's onMessage gets routeId so callers map clientId→routes themselves. Host onRouteClosed fires only for PeerJS routes; BroadcastChannel routes are never removed. Player send() always posts to BroadcastChannel even when the host is remote (harmless, same-browser only). Peer is the PeerJS global created by loadScript; randInt and baseUrl are globals from other files. PeerJS host status 'taken' means another host already holds that room code.
 
 
-### `js/realtime/host.js` <sub>(verified)</sub>
+### `js/realtime/host.js`
 
 Host-side realtime session hook: the host device is authoritative. Phones send intents (JOIN/READY/LEAVE/PING/ACTION); the host validates them, mutates the player list and broadcasts a full STATE snapshot to all connected clients via a PeerJS-based transport.
 
@@ -664,7 +664,7 @@ Host-side realtime session hook: the host device is authoritative. Phones send i
 > **Note:** Only one top-level declaration in this file. Flow: start() gates on Entitlements.hasFeature(sub,'realtime-sync'); JOIN with m.screen=true is a Big Screen viewer that only gets the snapshot and never becomes a player; room full (venue.maxPlayers, default 8) replies RT.FULL; a PING from an unknown clientId (host reloaded) replies RT.REJOIN so the phone re-JOINs; a JOIN from a clientId already in players but not in remote re-attaches rather than duplicating. end() broadcasts RT.END and closes transport. Snapshot seq is monotonically increasing via seqRef. liveRef.current is reassigned every render so callbacks read fresh props/state without re-creating. Phone ACTIONs are stored as remote[clientId].lastAction for games to consume; validation that it is the player's turn happens elsewhere.
 
 
-### `js/realtime/player.js` <sub>(verified)</sub>
+### `js/realtime/player.js`
 
 Player (phone) client shown after scanning the host's QR code: joins a room by code, mirrors the host's live stage snapshot (challenge / roles / timer / winner), lets the player toggle "ready" and leave. The host owns all game logic; this file is a thin view over RT messages.
 
@@ -680,7 +680,7 @@ Player (phone) client shown after scanning the host's QR code: joins a room by c
 > **Note:** All declarations are globals shared across files (no-build Babel). StageView is intentionally reused by the big-screen view (big prop). PlayerClient identifies "me" in the snapshot by matching p.remote && p.name === name.trim(), not by clientId, so duplicate remote names can misattribute mine. The mount effect has an empty dependency array and captures saved/code from first render; rejoin reads sessionStorage fresh each time. Status shown to the user is driven by message receipt (any message sets 'online'); the transport's onStatus callback is a no-op. The 'full' message reuses the t.partyCode label with a hardcoded ' — full' suffix (not i18n). PlayerClient sets document.body.style.background as a side effect and does not restore it.
 
 
-### `js/venue/venueView.js` <sub>(verified)</sub>
+### `js/venue/venueView.js`
 
 Venue (MAX plan) settings screen: venue branding (name, tagline, logo, colors with live preview), venue mode (start/stop a hosted room with QR join link, host controls, remote player list, big-screen launch), and session stats.
 
@@ -694,7 +694,7 @@ Venue (MAX plan) settings screen: venue branding (name, tagline, logo, colors wi
 > **Note:** canBrand (Entitlements.hasFeature(sub,'venue-branding')) is computed but never used, so branding is not gated here. Props lang, setPlayers, and stage are accepted but unused. The share button label is derived by stripping 'wheel' from t.shareWheel. qrcode is a window global injected by the external script at QRCODE_URL, not defined in the repo. Logo accepted types PNG/JPG/WEBP, limit (4 MB) is enforced by processLogoFile, the text here is just a hint.
 
 
-### `js/venue/bigscreen.js` <sub>(verified)</sub>
+### `js/venue/bigscreen.js`
 
 Big Screen (MAX) presentation mode for a TV/projector: a full-screen overlay component rendered inside the host window, plus a standalone read-only window (#bigscreen route) that mirrors the host's state over BroadcastChannel.
 
@@ -706,7 +706,7 @@ Big Screen (MAX) presentation mode for a TV/projector: a full-screen overlay com
 > **Note:** Only 2 top-level declarations in this file (75 lines). BigScreenWindow only works if the host has previously stored hostRoom in persisted state (loadState) and the browser supports BroadcastChannel; otherwise it renders an empty BigScreen with no room/QR. It never writes state back to the host (read-only mirror), identified to the host via the screen: true flag on the JOIN message. It sets document.body.style.background directly as a side effect.
 
 
-### `js/games/spinner.js` <sub>(pending verification)</sub>
+### `js/games/spinner.js`
 
 The original wheel game view. Owns the spin animation engine (rAF + easing, background-tab safety timer), drag/flick-to-spin pointer handling, the items editor actions, keyboard shortcuts, the result card wiring, and publishing wheel state to the party/big-screen channel.
 
@@ -717,7 +717,7 @@ The original wheel game view. Owns the spin animation engine (rAF + easing, back
 > **Note:** Only one top-level declaration exists in this file (SpinnerView); all other helpers are closures inside it. Phase state: 'idle' \| 'spinning' \| 'won'. Rotation lives in rotRef and is applied directly to diskRef.style (not React state) for performance; spinSeq guards stale rAF frames. A setTimeout at T+120ms force-lands the wheel because rAF pauses in background tabs. removedForRef prevents double elimination of the same winner id. cfgRef/itemsRef/spinRef/closeResultRef are mutable mirrors so the one-time keydown listener sees fresh props. Expects t (I18N strings) to include functions: lastStanding, shareText, removed, dupesRemoved, itemsCount, plus keys winnerIs, copied, maxReached, undo, shuffled, cleared, items, spin, needTwo, spinning, spinHint, footer. sample() falls back to SAMPLE_ITEMS[lang].drinking when theme has no sample list.
 
 
-### `js/games/party.js` <sub>(verified)</sub>
+### `js/games/party.js`
 
 Party screen: lets the host edit the players at the table, shows tonight's summary stats (games played, most wins, longest streak, most played, most points), lists the game history, and offers "clear history" / "new party" actions.
 
@@ -728,7 +728,7 @@ Party screen: lets the host edit the players at the table, shows tonight's summa
 > **Note:** Only one top-level declaration in this file. Internal helpers tile(label, value, sub) and who(row, key, unit) are local closures, not globals. clearHistory wipes both history and stats; newParty calls createSession(s.players) so players survive but everything else resets. History entries are expected to have {id, modeId, gameId, summary, ts}; unknown modeId falls back to a generic 🎮 icon. I18N keys used: party, partySummary, gamesPlayed, players, mostWins, winsLabel, longestStreak, streakLabel, mostPlayed, games2, mostPoints, pts, gameHistory, clearHistory, noGames, newPartyConfirm, newParty, maybeLater.
 
 
-### `js/games/battle.js` <sub>(pending verification)</sub>
+### `js/games/battle.js`
 
 Single Battle game component covering five variants (quick, bo3, streak, team, elimination); the variant only swaps the rules object (buildRound / resolveRound / checkEnd) fed into useGameEngine, while setup, countdown, challenge, result and finish screens are shared.
 
@@ -740,18 +740,18 @@ Single Battle game component covering five variants (quick, bo3, streak, team, e
 > **Note:** Only two top-level declarations exist; everything else (rules, bags, start/decide/redraw, winnerInfo) is local inside BattleGame. Gotchas: rules is memoized on [variant, lang] but closes over bags (useBag hooks) and isDuel; bo3 forces bestOf=3 while quick uses the bestOf pill (1/3/5, win need = ceil(bestOf/2)). Engine state shape relied on: state.status ('setup'\|'countdown'\|'challenge'\|'result'\|else finished), state.round, state.players, state.settings {bestOf, rounds, goal, teams, teamScores}, state.current {participants, challenge, scope?, queue?, bye?}, state.lastResult, state.winner (array of players OR {team, players} for team variant), engine.pendingWinner, engine.startGame/resolveRound/nextRound/patchCurrent/countdownDone. Elimination keeps the pairing queue in state.current.queue and re-pairs via Random.pairs when empty. The result sound uses 'ding' in SFX ? 'ding' : 'land', so SFX must be an object. Team variant with chosen players not assigned a team gets auto-filled alternating red/blue in fullTeams(); canStart requires both teams non-empty. CHALLENGES[lang] entries need a scope field of 'duel'\|'solo'\|'all'.
 
 
-### `js/games/king.js` <sub>(pending verification)</sub>
+### `js/games/king.js`
 
 Implements the "King of the Table" party game (variants: classic, challenge, last king standing). Winner-stays duel format where the current king faces a rotating challenger each round; the king and challenger queue are carried in the round payload managed by useGameEngine.
 
 | Symbol | Kind | Signature | What it does |
 | --- | --- | --- | --- |
-| `KingGame` | component | `<KingGame ctx={{ t, lang, mode, item, meta, modeTitle, players, setPlayers, sfx, celebrate, onExit, onChangeGame, onBackToParty, onFinish, publish }} />` | Full game screen: setup (player selection + rounds pill for non-'last' variants), countdown, challenge phase (Versus + ChallengeCard or 3-option pick in 'challenge' variant, Decision for winner), result (king stays / new king, elimination note in 'last'), and GameResult with reign stats; drives a useGameEngine with buildRound/resolveRound/checkEnd rules. — uses `useState`, `useEffect`, `useMemo`, `useGameEngine`, `useBag`, `useRecordOnFinish`, `defaultSelection`, `shuffleArr` |
+| `KingGame` | component | `<KingGame ctx={{ t, lang, mode, item, meta, modeTitle, players, setPlayers, sfx, celebrate, onExit, onChangeGame, onBackToParty, onFinish, publish }} />` | Full game screen: setup (player selection + rounds pill for non-'last' variants), countdown, challenge phase (Versus + ChallengeCard or 3-option pick in 'challenge' variant, Decision for winner), result (king stays / new king, elimination note in 'last'), and GameResult with reign stats; drives a useGameEngine with buildRound/resolveRound/checkEnd rules. *(verified: Signature is accurate (ctx destructures exactly t, lang, mode, item, meta, modeTitle, players, setPlayers, sfx, celebrate, onExit, onChangeGame, onBackToParty, onFinish, publish), but the entry lacks a description and dependency list. Description: King of the Table game component with three variants via item.variant ('classic' \| 'challenge' \| 'last'); winner stays as king, challengers rotate from a queue stored in the round payload; 'challenge' variant lets the king pick 1 of 3 duel challenges, 'last' eliminates a defeated challenger and ends when no challengers remain, otherwise ends after a configurable rounds setting (5/8/12). Tracks reign stats (defenses, longest reign) from history, publishes live status via publish(), and records result via useRecordOnFinish/gameResultEntry. dependsOn (globals from other files): useState, useEffect, useMemo, defaultSelection, useBag, CHALLENGES, Random.player, Score (byId, active, addPoints, incrementWin, incrementLoss, eliminatePlayer), shuffleArr, useGameEngine, useRecordOnFinish, gameResultEntry, PlayerSetup, OptionPills, Countdown, Versus, ChallengeCard, Decision, ScoreBoard, GameResult, GameShell.)* — uses `useState`, `useEffect`, `useMemo`, `useGameEngine`, `useBag`, `useRecordOnFinish`, `defaultSelection`, `shuffleArr` |
 
 > **Note:** Only one top-level declaration in this file. item.variant selects behaviour: 'classic' (fixed rounds 5/8/12, default 8), 'challenge' (challenger picks 1 of 3 challenges via engine.patchCurrent; no re-roll button), 'last' (no round limit; a defended challenge eliminates the challenger via Score.eliminatePlayer; ends when king is the only active player). Challenges are drawn from CHALLENGES[lang] filtered to scope === 'duel' through useBag. Round payload shape: { kingId, challengerId, reign, queue, challenge, options }; result shape: { kingId, challengerId, defended, newKingId, reign }. First round kingId is random (Random.player); challenger queue is reshuffled from active non-king players when exhausted. kingStats (defenses/longest reign) are recomputed from state.history. The rules useMemo depends on [variant, lang] but closes over bag; bag identity changing without variant/lang change would not refresh rules. Publishes live status via ctx.publish and clears it (publish(null)) on unmount. Uses i18n keys: defenses, king, challenger, roundsLabel, startGame, needPlayers(n), reign(n), pickChallenge, whoWon, newChallenge, kingStays, newKing, isOut(name), winsLabel, finish, nextRound, kingOfNight, longestReign.
 
 
-### `js/games/quiz.js` <sub>(verified)</sub>
+### `js/games/quiz.js`
 
 Single quiz game engine used by every quiz category: hot-seat play where each player answers one multiple-choice question per round under a 15 s timer, earning +100 for a correct answer plus a speed bonus of up to +50.
 
@@ -763,7 +763,7 @@ Single quiz game engine used by every quiz category: hot-seat play where each pl
 > **Note:** Only two top-level declarations exist (QUIZ_TIME, QuizGame); there is no separate questions bank in this file — questions come from the global questionsFor(item.category) and are drawn via useBag. Question shape expected: { q: {lang: string}, options: {lang: string[]}, a: index, why?: {lang: string} }. The rules useMemo depends only on [item.category], so it captures the bag instance from first render; the timer-expiry effect depends on [showing, state.round]. Handoff phase is skipped when only one player is selected (phase starts as 'question' directly, but startedAt stays 0 in that path, so the speed bonus is computed from performance.now() - 0 — effectively no bonus for solo play unless patchCurrent sets startedAt). ctx.publish is optional; the component publishes null on unmount.
 
 
-### `js/games/minigames.js` <sub>(pending verification)</sub>
+### `js/games/minigames.js`
 
 Implements the six hot-seat mini games (Rock Paper Scissors, 5 Second Rule, Word Challenge, Don't Laugh, Reaction Test, Memory) as React components, each defining a rules object for the shared useGameEngine and sharing setup/next/stage helpers defined at the top of the file.
 
@@ -773,11 +773,11 @@ Implements the six hot-seat mini games (Rock Paper Scissors, 5 Second Rule, Word
 | `StartButton` | component | `<StartButton t onClick disabled accent icon='▶' label />` | Full-width gradient CTA button; label falls back to t.startGame. |
 | `NextButton` | component | `<NextButton t engine accent sfx />` | Calls sfx('click') then engine.nextRound(); shows t.finish when engine.pendingWinner is set, else t.nextRound. |
 | `MiniSetup` | component | `<MiniSetup ctx setup children onStart icon />` | Setup screen: howToPlay text, PlayerSetup for selecting players, optional extra option children, StartButton, and a needPlayers hint when canStart is false. — uses `PlayerSetup` |
-| `useMiniStage` | hook | `useMiniStage(ctx, state, extra) → void` | Publishes {icon, title, status, round, scores, winner, ...extra} via ctx.publish for the big-screen view on status/round/current/players/challenge/timerMs change; publishes null on unmount. — uses `useEffect` |
+| `useMiniStage` | hook | `useMiniStage(ctx, state, extra) → void` | Publishes {icon, title, status, round, scores, winner, ...extra} via ctx.publish for the big-screen view on status/round/current/players/challenge/timerMs change; publishes null on unmount. *(verified: Signature is correct but underspecified: useMiniStage(ctx, state, extra?) → void, where extra may include { participants, challenge, timerMs, roles }; publishes { icon, title, status, round, scores: state.players, winner: state.winner\|\|[], ...extra } via ctx.publish and republishes only when status/round/current/players/extra.challenge/extra.timerMs change; publishes null on unmount.)* — uses `useEffect` |
 | `RPS` | const | `[{ id: 'rock'\|'paper'\|'scissors', icon }]` | The three Rock-Paper-Scissors choices with emoji icons. |
 | `RPS_BEATS` | const | `{ rock: 'scissors', scissors: 'paper', paper: 'rock' }` | Map of which choice beats which. |
 | `RpsGame` | component | `<RpsGame ctx />` | 2-player RPS, first to goal (3\|5) wins; players pick secretly in turn (phase a → b → reveal), round resolves after 1.1s reveal animation, Score wins/points tracked. — uses `useGameEngine`, `Score`, `useRecordOnFinish`, `gameResultEntry`, `OptionPills`, `Countdown`, `PlayerChip`, `ScoreBoard` |
-| `TimedPromptGame` | component | `<TimedPromptGame ctx seconds buildPrompt() renderPrompt(prompt, plain) icon />` | Generic prompt + countdown timer + host verdict (success/fail) game; rotates players, total rounds = players × perPlayer (1-3), tracks streaks, toasts milestone at streak ≥ 3. — uses `useGameEngine`, `useTimer`, `Score`, `useRecordOnFinish`, `gameResultEntry`, `OptionPills`, `PlayerChip`, `TimerRing` |
+| `TimedPromptGame` | component | `<TimedPromptGame ctx seconds buildPrompt() renderPrompt(prompt, plain) icon />` | Generic prompt + countdown timer + host verdict (success/fail) game; rotates players, total rounds = players × perPlayer (1-3), tracks streaks, toasts milestone at streak ≥ 3. *(verified: buildPrompt and renderPrompt are passed as props: <TimedPromptGame ctx seconds buildPrompt={() => prompt} renderPrompt={(prompt, plain) => plain ? string : JSX} icon />. Also exposes an internal 'rounds per player' OptionPills (×1/×2/×3); total rounds = chosen.length * perPlayer; phases ready → timing → judge; host verdict via Decision (ok/fail).)* — uses `useGameEngine`, `useTimer`, `Score`, `useRecordOnFinish`, `gameResultEntry`, `OptionPills`, `PlayerChip`, `TimerRing` |
 | `FiveSecondGame` | component | `<FiveSecondGame ctx />` | 5 Second Rule: TimedPromptGame with seconds=5 drawing category prompts from FIVE_SECOND_PROMPTS[lang] via useBag. — uses `TimedPromptGame`, `useBag`, `FIVE_SECOND_PROMPTS` |
 | `WordGame` | component | `<WordGame ctx />` | Word Challenge: TimedPromptGame with seconds=10; prompt = { category from WORD_CATEGORIES[lang], letter from WORD_LETTERS }. — uses `TimedPromptGame`, `useBag`, `WORD_CATEGORIES`, `WORD_LETTERS`, `randInt` |
 | `DontLaughGame` | component | `<DontLaughGame ctx />` | 2-player Don't Laugh: performer/judge alternate each round for 2\|4\|6 rounds; 30s timer, judge taps 'laughed' to give performer the point, timeout gives judge the point. — uses `useGameEngine`, `useTimer`, `useBag`, `DONT_LAUGH_PROMPTS`, `Score`, `useRecordOnFinish`, `gameResultEntry`, `OptionPills` |
@@ -790,7 +790,7 @@ Implements the six hot-seat mini games (Rock Paper Scissors, 5 Second Rule, Word
 > **Note:** All games follow the same flow: useMiniSetup → engine.startGame(chosen, settings) → status 'setup' \| 'countdown' \| 'challenge' \| 'result' \| finished, driven by a rules object { countdown, buildRound, resolveRound, checkEnd } passed to useGameEngine. Per-round transient state lives in state.current and is mutated via engine.patchCurrent. ctx is expected to carry: t, lang, mode, item, meta, modeTitle, players, setPlayers, sfx, celebrate, showToast, publish, onExit, onChangeGame, onBackToParty, onFinish. Rules objects are memoized with [] (or [lang] for DontLaugh) so closures over bag/buildPrompt are captured once. ReactionGame and MemoryGame seed extra player fields (bestMs, attempts) on startGame and use metric="time" on ScoreBoard/GameResult. Nothing in this file registers the games into a catalog; that mapping lives elsewhere.
 
 
-### `js/games/cards.js` <sub>(pending verification)</sub>
+### `js/games/cards.js`
 
 The Cards party game: each turn a player draws a card from a shuffled deck, reveals it, and resolves it (done / skip / use shield, or apply a wild/chaos effect). Wild/chaos effects mutate engine settings: turn order, direction, multipliers, shields and forced targets.
 
@@ -801,7 +801,7 @@ The Cards party game: each turn a player draws a card from a shuffled deck, reve
 > **Note:** Only one top-level declaration in this file (CardsGame); all helpers are inline closures. rules useMemo depends only on [item.deck, lang] but closes over bag (useBag) — fine as long as bag's identity is stable for the same key. checkEnd returns Score.leaders when round >= settings.count; cardsLeft is computed as count - round + 1. 'switch' and 'swap' and 'respin' effects do NOT advance idx (the swapped-in/same player draws next). roundMult is set to n+1 then decremented at the end of every resolve, so a DOUBLE ROUND lasts one full cycle of players. Shield use ('shield' outcome) still awards points like 'done' but decrements the player's shield count. sfx('coin') is used only if 'coin' exists in global SFX, otherwise 'land'. publish() is called with a live snapshot for the party screen and publish(null) on unmount.
 
 
-### `js/app.js` <sub>(pending verification)</sub>
+### `js/app.js`
 
 Root of the no-build React app: the App component owns all persistent + UI state (lang, theme, items, session, subscription, venue, screen), wires sidebar/header/game/spinner callbacks, and routes between SpinnerView, games, PartyView, PricingView, VenueView. The file also mounts the root: #join=CODE renders PlayerClient, #bigscreen renders BigScreenWindow, otherwise App.
 
@@ -809,13 +809,13 @@ Root of the no-build React app: the App component owns all persistent + UI state
 | --- | --- | --- | --- |
 | `gameComponents` | function | `gameComponents() → { battle, king, quiz, rps, fiveSecond, dontLaugh, reaction, memory, word, cards } (each a component or null)` | Maps GAME_REGISTRY item component keys to the game components defined in js/games/*, resolving lazily via typeof so missing games become null (rendered as GamePlaceholder). — uses `BattleGame`, `KingGame`, `QuizGame`, `RpsGame`, `FiveSecondGame`, `DontLaughGame`, `ReactionGame`, `MemoryGame` |
 | `App` | component | `<App /> (no props)` | Top-level stateful component: loads/saves state via loadState/saveState, applies theme/brand to document, handles Esc/F/M keys, builds gameCtx {t, lang, mode, item, meta, modeTitle, players, setPlayers, sfx, haptics, theme, celebrate, showToast, publish, onExit, onChangeGame, onBackToParty, onFinish} for game components, and renders Header + main view (screen: play\|party\|pricing\|venue) + SideMenu + UpgradeModal + BigScreen + Toast. — uses `useState`, `useEffect`, `useMemo`, `useRef`, `useCallback`, `loadState`, `saveState`, `I18N` |
-| `JOIN_CODE` | const | `string \| undefined — 4-8 alphanumeric chars parsed from location.hash #join=XXXX` | Room code from a scanned QR link; when present the root renders PlayerClient instead of App. |
+| `JOIN_CODE` | const | `string \| undefined — 4-8 alphanumeric chars parsed from location.hash #join=XXXX` | Room code from a scanned QR link; when present the root renders PlayerClient instead of App. *(verified: Regex is /[#&]join=([A-Za-z0-9]{4,8})/ — the code can follow either # or & in location.hash (e.g. #x&join=ABCD), not only #join=XXXX. Also note the value is passed to PlayerClient as JOIN_CODE.toUpperCase().)* |
 | `IS_BIGSCREEN_WINDOW` | const | `boolean — true when location.hash contains #bigscreen` | Flag that makes the root render BigScreenWindow (TV window) instead of App. |
 
 > **Note:** Only 4 top-level declarations; everything else (pickGame, doUpgrade, shareWheel, toggleParty, etc.) is a closure inside App, not a global. The root mount (ReactDOM.createRoot(...).render) runs at file load, so app.js must be the LAST script included — all referenced globals (React hooks destructured elsewhere, I18N, THEMES, GAME_REGISTRY, views, games) must already be defined. Game components and VenueView/BigScreen/PlayerClient/BigScreenWindow/useHostSession are optional via typeof guards; useHostSession falls back to an offline stub {room:null, remote:{}, status:'offline', ...}. Payments are not implemented: doUpgrade switches plan only when IS_DEV, otherwise shows t.paymentsSoon toast. Host room reopen relies on sessionStorage key 'pg-host'. Dev debug object exposed at window.__pgDebug when IS_DEV.
 
 
-### `sw.js` <sub>(pending verification)</sub>
+### `sw.js`
 
 Service worker for the Party Spinner PWA: precaches the app shell (all local JS/CSS/HTML) and pinned CDN libraries at install, cleans old caches on activate, and serves fetches network-first for same-origin files (cache as offline fallback) and cache-first for CDN libs.
 

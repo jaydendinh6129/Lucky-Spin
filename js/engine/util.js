@@ -5,7 +5,7 @@ const { useState, useEffect, useLayoutEffect, useReducer, useRef, useMemo, useCa
  * ============================================================ */
 
 const STORAGE_KEY = 'party_spinner_v1';
-const APP_VERSION = '1.1';
+const APP_VERSION = '2.1';
 const MAX_ITEMS = 100;
 const MAX_ITEM_LEN = 60;
 const MAX_HISTORY = 50;
