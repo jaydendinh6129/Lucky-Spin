@@ -4,6 +4,8 @@
 
 A premium, offline-ready **party-game console** that grew out of Party Spinner: the original wheel plus Battle, King of the Table, Quiz, Mini Games and Cards, a shared party session, a FREE / PRO / MAX plan layer and (MAX) venue branding with real-time multiplayer. No build step — plain JSX compiled in the browser.
 
+> **Working on the code (humans or AI agents)?** Start with [`CLAUDE.md`](CLAUDE.md) (conventions, rules, checklists) and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (boot order, routing, game-engine state machine, realtime protocol, and a verified index of every top-level function/component per file).
+
 ## Run
 
 The source is split into many files that Babel loads over HTTP, so serve the folder (opening `index.html` from `file://` will not work):
