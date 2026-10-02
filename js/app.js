@@ -38,6 +38,9 @@ function App() {
     stored.activeGame && findGame(stored.activeGame.mode, stored.activeGame.id) ? stored.activeGame : { mode: 'spinner', id: themeKey }
   );
   const [session, setSession]     = useState(() => normalizeSession(stored.session));
+  /* Quiz preferences live here so the Settings panel can change them while a quiz is open */
+  const [quizPrefs, setQuizPrefsState] = useState(loadQuizPrefs);
+  const setQuizPrefs = useCallback((patch) => setQuizPrefsState((p) => { const next = { ...p, ...patch }; saveQuizPrefs(next); return next; }), []);
   const [sub, setSub]             = useState(() => normalizeSubscription(stored.subscription));
   const [venue, setVenue]         = useState(() => normalizeVenue(stored.venue));
 
@@ -308,7 +311,8 @@ function App() {
     modeTitle: MODE_TEXT[lang][activeDef.mode.id].title,
     players: session.players, setPlayers, sfx, haptics, theme, celebrate: celebrateGame, showToast, publish: setStage,
     onExit: backToSpinner, onChangeGame: () => setMenuOpen(true), onBackToParty: openParty, onFinish: finishGame,
-    sub, openItem: (modeId, itemId) => { const def = findGame(modeId, itemId); if (def) pickGame(def.mode, def.item, !Entitlements.canPlay(sub, def.item)); },
+    host, sub, quizPrefs, setQuizPrefs,
+    openItem: (modeId, itemId) => { const def = findGame(modeId, itemId); if (def) pickGame(def.mode, def.item, !Entitlements.canPlay(sub, def.item)); },
   } : null;
   const keysBlocked = menuOpen || !!upgrade || screen !== 'play' || bigScreen;
 
@@ -361,6 +365,7 @@ function App() {
         open={menuOpen} onClose={() => setMenuOpen(false)} t={t} lang={lang} setLang={setLang}
         openModes={openModes} onToggleMode={toggleMode} activeGame={screen === 'play' ? activeGame : { mode: screen === 'editor' || screen === 'bank' ? 'mygames' : screen, id: '' }} onPickGame={pickGame}
         sub={sub} onOpenPricing={openPricing} onDevSetPlan={devSetPlan} venue={brand} onOpenVenue={openVenue}
+        quizPrefs={quizPrefs} setQuizPrefs={setQuizPrefs} activeDef={activeDef}
         session={session} onOpenParty={openParty} onOpenCreator={openCreator}
         soundOn={soundOn} setSoundOn={setSoundOn} haptics={haptics} setHaptics={setHaptics}
         eliminate={eliminate} setEliminate={setEliminate} duration={duration} setDuration={setDuration}

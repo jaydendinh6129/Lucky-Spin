@@ -20,7 +20,54 @@ function ConnectionStatus({ t, status }) {
 }
 
 /* The live stage, shared by phones and the big screen */
-function StageView({ t, stage, meId, big }) {
+/* Answer pad on the student's phone. The host is authoritative: we send an
+ * intent and wait for the next snapshot to tell us what happened. */
+function AnswerPad({ t, stage, myAnswer, onAnswer }) {
+  const opts = stage.options || [];
+  if (!opts.length) return null;
+  const revealed = stage.reveal ? stage.reveal.answer : null;
+  const locked = myAnswer != null;
+  const tf = opts.length === 2 && /^(true|đúng)$/i.test(opts[0].text || '');
+  return (
+    <div className="space-y-2">
+      <div className={`grid gap-2 ${tf || opts.some((o) => o.image) ? 'grid-cols-2' : ''}`}>
+        {opts.map((o, i) => {
+          const mine = myAnswer === i;
+          const right = revealed === i;
+          const wrong = revealed != null && mine && !right;
+          const cls = right ? 'bg-green-500/35 border-green-300 ring-2 ring-green-300'
+            : wrong ? 'bg-red-500/30 border-red-300'
+            : mine ? 'bg-white/25 border-white ring-2 ring-white/70'
+            : revealed != null ? 'bg-black/20 border-white/10 opacity-50'
+            : 'bg-white/12 border-white/20 hover:bg-white/20';
+          return (
+            <button key={i} onClick={() => !locked && revealed == null && onAnswer(i)} disabled={locked || revealed != null}
+              className={`min-h-[72px] rounded-2xl px-4 py-3 border-2 font-bold text-left flex items-center gap-3 btn-press disabled:cursor-default ${cls}`}>
+              <span className="w-8 h-8 shrink-0 rounded-full bg-black/35 grid place-items-center text-sm font-black">{'ABCDEF'[i]}</span>
+              {o.image && <img src={o.image} alt="" className="h-10 rounded-lg object-contain" />}
+              <span className="flex-1 min-w-0">{o.text}</span>
+              {right && <span className="text-xl">✓</span>}
+              {wrong && <span className="text-xl">✕</span>}
+            </button>
+          );
+        })}
+      </div>
+      {revealed == null && (
+        <div className="text-center text-sm font-bold">
+          {locked ? <span className="text-green-300">✓ {t.answerLocked}</span> : <span className="text-white/60">{t.pickAnAnswer}</span>}
+        </div>
+      )}
+      {revealed != null && locked && (
+        <div className={`text-center text-lg font-black ${revealed === myAnswer ? 'text-green-300' : 'text-red-300'}`}>
+          {revealed === myAnswer ? `🎉 ${t.correct}` : `😅 ${t.wrong}`}
+        </div>
+      )}
+      {revealed != null && !locked && <div className="text-center text-sm text-white/60">⏰ {t.timeUp}</div>}
+    </div>
+  );
+}
+
+function StageView({ t, stage, meId, big, myAnswer, onAnswer }) {
   if (!stage) return null;
   const me = meId && stage.participants.some((p) => p.id === meId);
   const sz = big ? 'text-[clamp(28px,6vmin,72px)]' : 'text-2xl';
@@ -45,7 +92,24 @@ function StageView({ t, stage, meId, big }) {
       {me && stage.status === 'challenge' && <div className="inline-block px-4 py-1.5 rounded-full bg-yellow-300 text-yellow-900 font-black text-sm pulse-soft">⚡ {t.youAreUp}</div>}
       {stage.image && stage.status === 'challenge' && <img src={stage.image} alt="" className={`mx-auto rounded-xl ring-1 ring-white/20 shadow-xl ${big ? 'h-[22vmin]' : 'h-24'}`} />}
       {stage.challenge && stage.status === 'challenge' && <p className={`font-black leading-snug ${big ? 'text-[clamp(22px,5vmin,64px)] max-w-5xl mx-auto' : 'text-lg'}`}>{stage.challenge}</p>}
-      {stage.timerMs != null && stage.status === 'challenge' && <div className={`font-black tabular-nums ${big ? 'text-[clamp(60px,14vmin,180px)] leading-none' : 'text-5xl'} ${stage.timerMs < 3000 ? 'text-red-300' : ''}`}>{String(Math.ceil(stage.timerMs / 1000)).padStart(2, '0')}</div>}
+      {stage.timerMs != null && stage.status === 'challenge' && (
+        /* the unit matters on a phone: a bare "12" reads like answer B */
+        <div className={`font-black tabular-nums ${big ? 'text-[clamp(60px,14vmin,180px)] leading-none' : 'text-3xl'} ${stage.timerMs < 3000 ? 'text-red-300' : 'text-white/70'}`}>
+          {String(Math.ceil(stage.timerMs / 1000)).padStart(2, '0')}{big ? '' : <span className="text-base font-bold">s</span>}
+        </div>
+      )}
+      {!big && onAnswer && (stage.status === 'challenge' || stage.reveal) && <AnswerPad t={t} stage={stage} myAnswer={myAnswer} onAnswer={onAnswer} />}
+      {big && stage.options && stage.status === 'challenge' && (
+        <div className="grid grid-cols-2 gap-3 max-w-4xl mx-auto w-full">
+          {stage.options.map((o, i) => (
+            <div key={i} className="rounded-2xl px-4 py-3 bg-white/10 border border-white/20 flex items-center gap-3" style={{ fontSize: 'clamp(16px, 3vmin, 34px)' }}>
+              <span className="shrink-0 font-black text-white/60">{'ABCDEF'[i]}</span>
+              {o.image && <img src={o.image} alt="" className="h-[7vmin] rounded-lg object-contain" />}
+              <span className="font-bold">{o.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
       {stage.status === 'finished' && stage.winner.length > 0 && (
         <div className="space-y-2">
           <div className={big ? 'text-[clamp(40px,10vmin,120px)] crown-float' : 'text-5xl crown-float'}>👑</div>
@@ -111,6 +175,17 @@ function PlayerClient({ code }) {
     transport.current.send({ type: RT.JOIN, name: n });
   };
   const mine = snap ? snap.players.find((p) => p.remote && p.name === name.trim()) : null;
+  const stage = snap && snap.stage;
+  const qid = stage && stage.questionId;
+  /* Remember what we picked per question so a re-render or reconnect keeps showing it */
+  const [picked, setPicked] = useState({});
+  useEffect(() => { if (stage && stage.status === 'setup') setPicked({}); }, [stage && stage.status]);
+  const sendAnswer = (index) => {
+    if (!qid || picked[qid] != null) return;
+    setPicked((p) => ({ ...p, [qid]: index }));
+    vibrate(20);   // helper đã tự bỏ qua khi trình duyệt chưa ghi nhận thao tác người dùng
+    transport.current.send({ type: RT.ACTION, action: { kind: 'answer', questionId: qid, index, ms: Date.now() - (stage.askedAt || Date.now()) } });
+  };
   useEffect(() => { if (IS_DEV) window.__pgClient = { snap, status, joined, clientId }; });
   const toggleReady = () => { if (!mine) return; transport.current.send({ type: RT.READY, ready: !mine.ready }); };
   const venue = snap && snap.venue;
@@ -145,7 +220,9 @@ function PlayerClient({ code }) {
           {snap && snap.paused && <div className="w-full text-center text-sm font-bold px-3 py-2 rounded-2xl bg-amber-400/20 border border-amber-300/40">⏸ {t.paused}</div>}
           <div className="glass rounded-3xl p-5 w-full">
             {snap && snap.stage ? (
-              <StageView t={t} stage={snap.stage} meId={mine ? mine.id : null} />
+              <StageView t={t} stage={snap.stage} meId={mine ? mine.id : null}
+                myAnswer={qid != null ? picked[qid] : null}
+                onAnswer={snap.stage.options && mine ? sendAnswer : null} />
             ) : (
               <div className="text-center space-y-2"><div className="text-5xl">✓</div><div className="font-black text-xl">{t.joined}</div><div className="text-sm text-white/60">{t.waitingHost}</div></div>
             )}

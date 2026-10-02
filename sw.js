@@ -1,5 +1,5 @@
 /* JParty service worker — cache-first for the app shell and CDN libs so it works offline. */
-const VERSION = 'jparty-v2.3';
+const VERSION = 'jparty-v2.4';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './icon.svg', './css/app.css',
   './js/engine/util.js', './js/data/themes.js', './js/data/i18n.js', './js/data/challenges.js', './js/data/quiz/animals.js', './js/data/quiz/flags.js', './js/data/quiz/iconic-animals.js', './js/data/quiz/mix.js', './js/quiz/quizEngine.js', './js/content/store.js', './js/content/customGames.js', './js/data/cards.js', './js/data/registry.js',

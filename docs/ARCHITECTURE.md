@@ -211,6 +211,25 @@ flowchart LR
 - **Teams** are a player grouping, not a scoring system: a team's score is the sum of its members', computed from the same `Score` helpers (`TeamScores` in `js/components/game.js`).
 - **Persistence is local and honest**: images are real Blobs in IndexedDB on that device. Nothing is uploaded; `ContentStore` is the only module that knows this, so a server can replace it later without touching the UI.
 
+### 13.1 Live classroom (students answer on their phones)
+
+```mermaid
+sequenceDiagram
+  participant H as Host screen / projector
+  participant S as Student phone (#join=CODE)
+  H->>H: question opens · stage carries questionId + options
+  H-->>S: STATE {options, questionId, timerMs}
+  S->>S: taps an answer → locked, cannot change
+  S-->>H: PLAYER_ACTION {kind:'answer', questionId, index, ms}
+  H->>H: first answer per student per question wins
+  H-->>S: STATE {answeredBy} → host shows "3 / 18 answered"
+  Note over H: everyone answered → auto-close after 400 ms,<br/>else the timer closes the question
+  H->>H: resolveRound({answers}) → every student scored at once
+  H-->>S: STATE {reveal:{answer}} → phone marks its own pick ✓/✕
+```
+
+Hot-seat and live are the **same game**: `buildRound` returns `playerId: null, live: true` when phones are connected, and `resolveRound` scores the whole class in one pass instead of one player. Speed bonus uses each student's own `ms`. Host controls (Reveal / Skip / Restart) work in both.
+
 ---
 
 ## 10. Symbol index (every top-level declaration, per file)

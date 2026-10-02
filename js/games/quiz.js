@@ -59,16 +59,23 @@ function QuizThemeCards({ t, lang, currentId, prefs, sub, onPick }) {
 }
 
 function QuizGame({ ctx }) {
-  const { t, lang, mode, item, meta, modeTitle, players: partyPlayers, setPlayers, sfx, celebrate, onExit, onChangeGame, onBackToParty, onFinish, publish, sub, openItem } = ctx;
+  const { t, lang, mode, item, meta, modeTitle, players: partyPlayers, setPlayers, sfx, celebrate, onExit, onChangeGame, onBackToParty, onFinish, publish, sub, openItem, host, quizPrefs, setQuizPrefs } = ctx;
   const custom = item.customGameId ? quizTheme(item.quizTheme) : null;
   const [minP, maxP] = item.players;
   const theme = quizTheme(item.quizTheme);
-  const [prefs, setPrefsState] = useState(() => (custom ? { ...loadQuizPrefs(), ruleset: 'custom', difficulty: 'all' } : loadQuizPrefs()));
-  const setPrefs = (patch) => setPrefsState((p) => { const next = { ...p, ...patch }; if (!custom) saveQuizPrefs(next); else setPrefsState(next); return next; });
+  /* Built-in themes share the app-wide prefs (also editable from Settings);
+   * a custom game carries its own rules, so it keeps them local. */
+  const [customPrefs, setCustomPrefs] = useState(() => ({ ...quizPrefs, ruleset: 'custom', difficulty: 'all' }));
+  const prefs = custom ? customPrefs : quizPrefs;
+  const setPrefs = (patch) => (custom ? setCustomPrefs((p) => ({ ...p, ...patch })) : setQuizPrefs(patch));
   const rs = rulesetFor(item.quizTheme, prefs.ruleset);
   /* 0 = cá nhân; 2|3|4 = chia đội. Custom game mặc định theo cấu hình của nó. */
   const [teamCount, setTeamCount] = useState(() => (custom && custom.config ? custom.config.teams : 0));
   const [teams, setTeams] = useState({});
+  /* Live classroom: phones are connected, so everyone answers the same question
+   * on their own device instead of passing one phone around. */
+  const liveIds = (host && host.livePlayerIds) || [];
+  const liveOn = !!(host && host.room) && liveIds.length > 0;
   const available = useMemo(() => (theme ? quizPool(theme.id, prefs).length : 0), [theme, prefs.ruleset, prefs.difficulty]);
   const [selected, setSelected] = useState(() => defaultSelection(partyPlayers, item.players));
   useEffect(() => { setSelected((sel) => sel.filter((id) => partyPlayers.some((p) => p.id === id))); }, [partyPlayers]);
@@ -77,12 +84,37 @@ function QuizGame({ ctx }) {
   const rules = useMemo(() => ({
     countdown: (round) => (round === 1 ? 3 : 0),
     buildRound: (s) => {
+      const q = s.settings.deck[s.round - 1];
+      /* Live: nobody holds the phone, so the question goes straight up on the screen. */
+      if (s.settings.live) return { playerId: null, q, phase: 'question', startedAt: 0, live: true };
       const p = s.players[(s.round - 1) % s.players.length];
-      return { playerId: p.id, q: s.settings.deck[s.round - 1], phase: s.players.length > 1 ? 'handoff' : 'question', startedAt: 0 };
+      return { playerId: p.id, q, phase: s.players.length > 1 ? 'handoff' : 'question', startedAt: 0 };
     },
-    resolveRound: (s, { answer, ms }) => {
+    resolveRound: (s, outcome) => {
       const { playerId, q } = s.current;
       const r = s.settings.rules;
+      if (s.current.live) {
+        /* outcome.answers: { [playerId]: { index, ms } } — chấm cho mọi học sinh đã trả lời */
+        const given = outcome.answers || {};
+        const qTime = q.timeMs != null ? q.timeMs : r.time;
+        const base = q.points != null ? q.points : r.points;
+        let players = s.players;
+        const stats = { ...s.settings.stats };
+        const perPlayer = {};
+        s.players.forEach((p) => {
+          const a = given[p.id];
+          if (!a) { players = Score.resetStreak(players, p.id); perPlayer[p.id] = { answered: false, correct: false, points: 0 }; return; }
+          const correct = a.index === q.answer;
+          const bonus = correct && qTime > 0 && r.speedBonus ? Math.round(r.speedBonus * clamp(1 - a.ms / qTime, 0, 1)) : 0;
+          const points = correct ? base + bonus : 0;
+          players = correct ? Score.addPoints(Score.incrementStreak(players, p.id), p.id, points) : Score.resetStreak(players, p.id);
+          const prev = stats[p.id] || { correct: 0, answered: 0, fastest: null };
+          stats[p.id] = { correct: prev.correct + (correct ? 1 : 0), answered: prev.answered + 1, fastest: correct ? Math.min(prev.fastest ?? Infinity, a.ms) : prev.fastest };
+          perPlayer[p.id] = { answered: true, correct, points, index: a.index, ms: a.ms };
+        });
+        return { players, result: { live: true, perPlayer, answeredCount: Object.keys(given).length }, settings: { ...s.settings, stats } };
+      }
+      const { answer, ms } = outcome;
       const correct = answer === q.answer;
       const qTime = q.timeMs != null ? q.timeMs : r.time;
       const base = q.points != null ? q.points : r.points;
@@ -111,6 +143,9 @@ function QuizGame({ ctx }) {
   const ps = state.players;
   const byId = (id) => Score.byId(ps, id);
   const chosen = partyPlayers.filter((p) => selected.includes(p.id));
+  const livePlayers = chosen.filter((p) => liveIds.includes(p.id));
+  const live = liveOn && livePlayers.length > 0;
+  useEffect(() => { if (liveOn) setSelected((sel) => Array.from(new Set([...sel, ...liveIds]))); }, [liveOn, liveIds.join()]);
   const count = custom ? available : Math.min(prefs.count, available);
   const teamsOk = teamCount === 0 || chosen.length >= teamCount;
   const canStart = !!theme && chosen.length >= minP && chosen.length <= maxP && count > 0 && teamsOk;
@@ -134,7 +169,8 @@ function QuizGame({ ctx }) {
     sfx('click');
     const deck = dealQuiz(theme.id, prefs, count);
     rememberQuiz(theme.id, deck.map((q) => q.id));
-    engine.startGame(chosen, { count: deck.length, deck, rules: rs, stats: {}, teamCount, teams: fullTeams() });
+    if (live && host) host.clearAnswers();
+    engine.startGame(live ? livePlayers : chosen, { count: deck.length, deck, rules: rs, stats: {}, teamCount, teams: fullTeams(), live });
   };
 
   /* the timer runs while a question is on screen */
@@ -143,11 +179,30 @@ function QuizGame({ ctx }) {
   const baseTime = (state.settings.rules || rs).time;
   const time = cur && cur.q && cur.q.timeMs != null ? cur.q.timeMs : baseTime;
   const untimed = !time;                       // 0 = không giới hạn thời gian
+  const liveRound = !!(cur && cur.live);
+  /* The clock starts when the question appears on screen, not when the round was built */
+  useEffect(() => {
+    if (showing && cur && !cur.startedAt) engine.patchCurrent({ startedAt: performance.now() });
+  }, [showing, state.round]);
+  const liveAnswers = liveRound && host ? host.answersFor(cur.q.id) : {};
+  const liveCount = Object.keys(liveAnswers).length;
+  const closeRound = () => {
+    if (liveRound) engine.resolveRound({ answers: host ? host.answersFor(cur.q.id) : {} });
+    else engine.resolveRound({ answer: null, ms: time });
+  };
+  const closeRef = useRef(closeRound);
+  closeRef.current = closeRound;
   useEffect(() => {
     if (!showing || untimed) { timer.stop(); return; }
-    timer.start(time, () => { sfx('land'); engine.resolveRound({ answer: null, ms: time }); });
+    timer.start(time, () => { sfx('land'); closeRef.current(); });
     return () => timer.stop();
   }, [showing, state.round, untimed, time]);
+  /* Everyone has answered → no reason to keep the class waiting out the clock */
+  useEffect(() => {
+    if (!showing || !liveRound || !ps.length || liveCount < ps.length) return;
+    const id = setTimeout(() => { timer.stop(); sfx('land'); closeRef.current(); }, 400);
+    return () => clearTimeout(id);
+  }, [showing, liveRound, liveCount, ps.length]);
   const answer = (i) => {
     if (!showing) return;
     const elapsed = performance.now() - cur.startedAt;
@@ -155,7 +210,7 @@ function QuizGame({ ctx }) {
     engine.resolveRound({ answer: i, ms: untimed ? elapsed : Math.min(time, elapsed) });
   };
   /* Host controls: bỏ qua câu hiện tại / chơi lại câu này */
-  const skipQuestion = () => { timer.stop(); sfx('click'); engine.resolveRound({ answer: null, ms: time || 0 }); };
+  const skipQuestion = () => { timer.stop(); sfx('click'); closeRef.current(); };
   const restartQuestion = () => { sfx('click'); engine.patchCurrent({ startedAt: performance.now() }); if (!untimed) timer.start(time, () => { sfx('land'); engine.resolveRound({ answer: null, ms: time }); }); };
   useEffect(() => {
     if (state.status !== 'result') return;
@@ -175,9 +230,16 @@ function QuizGame({ ctx }) {
       icon: item.icon, title: meta.title, status: state.status, round: state.round, total: state.settings.count,
       participants: cur ? [byId(cur.playerId)].filter(Boolean) : [],
       challenge: showing ? L(cur.q.question, lang) : null, image: showing && cur.q.media ? cur.q.media.src : null,
-      timerMs: showing ? timer.ms : null, scores: ps, winner: winners,
+      questionId: cur && cur.q ? cur.q.id : null,
+      askedAt: cur ? cur.startedAt : null,
+      /* Phones render these as answer buttons. Kept during the reveal too, so a
+       * student sees their own pick marked right or wrong. */
+      options: cur && cur.live && (showing || state.status === 'result')
+        ? cur.q.options.map((o) => ({ text: L(o, lang), image: o.media ? o.media.src : null })) : null,
+      reveal: state.status === 'result' && cur && cur.live ? { answer: cur.q.answer } : null,
+      timerMs: showing && !untimed ? timer.ms : null, scores: ps, winner: winners,
     });
-  }, [state.status, state.round, cur, state.players, Math.ceil(timer.ms / 1000)]);
+  }, [state.status, state.round, cur, state.players, Math.ceil(timer.ms / 1000), liveCount]);
   useEffect(() => () => publish && publish(null), []);
 
   const accentBtn = { background: `linear-gradient(90deg, ${theme ? theme.accent : mode.accent}, #a78bfa)` };
@@ -250,13 +312,23 @@ function QuizGame({ ctx }) {
             </div>
           )}
         </div>
+        {liveOn && (
+          <div className="rounded-2xl p-3 border border-green-300/40 bg-green-500/10 flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-green-400 pulse-soft shrink-0" />
+            <div className="flex-1 min-w-0 text-sm">
+              <div className="font-bold">{t.liveClassroom} · {t.room} <span className="font-mono tracking-widest">{host.room.code}</span></div>
+              <div className="text-[11px] text-white/70">{t.liveClassroomHint(liveIds.length)}</div>
+            </div>
+          </div>
+        )}
         <PlayerSetup t={t} players={partyPlayers} onChange={setPlayers} min={minP} max={maxP} selected={selected} onSelected={setSelected} sfx={sfx} />
         <button onClick={start} disabled={!canStart} className="w-full py-3.5 rounded-full font-extrabold text-lg btn-press shadow-lg disabled:opacity-40 text-white" style={accentBtn}>{theme.icon} {t.startGame}</button>
         {!canStart && <div className="text-center text-xs text-white/55">{count === 0 ? t.noQuestions : t.needPlayers(minP)}</div>}
       </div>
     );
   } else if (state.status === 'countdown') {
-    body = <Countdown seconds={3} onDone={engine.countdownDone} play={sfx} label={byId(cur.playerId).name} />;
+    /* Live rounds belong to the whole class, so there is no single player to name */
+    body = <Countdown seconds={3} onDone={engine.countdownDone} play={sfx} label={cur.playerId ? byId(cur.playerId).name : t.liveClassroom} />;
   } else if (state.status === 'challenge') {
     const p = byId(cur.playerId);
     const q = cur.q;
@@ -266,6 +338,51 @@ function QuizGame({ ctx }) {
           <Avatar player={p} size={80} />
           <div className="text-2xl font-black">{t.passTo(p.name)}</div>
           <button onClick={() => { sfx('click'); engine.patchCurrent({ phase: 'question', startedAt: performance.now() }); }} className="w-full py-3.5 rounded-full font-extrabold text-lg btn-press shadow-lg text-white" style={accentBtn}>👋 {t.yourTurn(p.name)}</button>
+        </div>
+      );
+    } else if (cur.live) {
+      /* Classroom: this screen is the projector. Students answer on their phones. */
+      body = (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 border border-green-300/40 text-sm font-bold">
+              <span className="w-2 h-2 rounded-full bg-green-400 pulse-soft" />{t.liveClassroom}
+            </span>
+            {untimed
+              ? <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/10 border border-white/15">⏱ ∞</span>
+              : <TimerRing ms={timer.ms} total={time} size={72} color={theme.accent} />}
+          </div>
+          <div className="rounded-3xl p-5 bg-black/25 border border-white/15 slide-up text-center">
+            <div className="text-[11px] uppercase tracking-[0.25em] text-white/55">{t.question} {state.round}/{state.settings.count}</div>
+            {q.media && <div className="mt-3"><QuizMedia media={q.media} lang={lang} /></div>}
+            <p className="text-2xl sm:text-3xl font-black mt-3 leading-snug">{L(q.question, lang)}</p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {q.options.map((o, i) => (
+              <div key={i} className="min-h-[56px] rounded-2xl px-4 py-3 bg-white/10 border border-white/15 font-bold flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full bg-black/30 grid place-items-center text-xs font-black shrink-0">{'ABCDEF'[i]}</span>
+                {o.media && <QuizMedia media={o.media} lang={lang} size="sm" />}
+                <span>{optionLabel(o)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm font-bold">
+              <span className="text-white/70">📱 {t.answeredCount(liveCount, ps.length)}</span>
+              <span className="text-white/50 text-xs">{t.studentsAnswerOnPhones}</span>
+            </div>
+            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-300" style={{ width: `${ps.length ? (liveCount / ps.length) * 100 : 0}%`, background: theme.accent }} />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {ps.map((pl) => <span key={pl.id} className={liveAnswers[pl.id] ? '' : 'opacity-30'}><Avatar player={pl} size={28} ring={liveAnswers[pl.id] ? '#4ade80' : undefined} /></span>)}
+            </div>
+          </div>
+          <Decision onPick={() => { timer.stop(); sfx('click'); closeRound(); }} options={[{ id: 'reveal', label: `👁 ${t.revealAnswer}`, color: theme.accent }]} />
+          <div className="flex items-center justify-center gap-2">
+            <button onClick={restartQuestion} className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/10 border border-white/15 btn-press">↻ {t.restartQuestion}</button>
+            <button onClick={skipQuestion} className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/10 border border-white/15 btn-press">⏭ {t.skipQuestion}</button>
+          </div>
         </div>
       );
     } else {
@@ -319,6 +436,48 @@ function QuizGame({ ctx }) {
         </div>
       );
     }
+  } else if (state.status === 'result' && state.lastResult.live) {
+    const r = state.lastResult;
+    const q = cur.q;
+    const over = !!engine.pendingWinner;
+    const rows = ps.map((pl) => ({ p: pl, ...(r.perPlayer[pl.id] || { answered: false, correct: false, points: 0 }) }))
+      .sort((a, b) => Number(b.correct) - Number(a.correct) || (a.ms || 1e9) - (b.ms || 1e9));
+    const nCorrect = rows.filter((x) => x.correct).length;
+    body = (
+      <div className="space-y-4">
+        <div className="text-center">
+          <div className="text-4xl" aria-hidden="true">{nCorrect ? '✅' : '🤔'}</div>
+          <div className="text-xl font-black mt-2 score-pop">{t.nGotItRight(nCorrect, ps.length)}</div>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {q.options.map((o, i) => {
+            const picked = rows.filter((x) => x.index === i).length;
+            return (
+              <div key={i} className={`rounded-2xl px-4 py-3 border font-bold flex items-center gap-3 ${i === q.answer ? 'bg-green-500/25 border-green-300/60' : 'bg-black/20 border-white/10 opacity-70'}`}>
+                <span className="w-7 h-7 rounded-full bg-black/30 grid place-items-center text-xs font-black shrink-0">{'ABCDEF'[i]}</span>
+                <span className="flex-1 min-w-0">{optionLabel(o)}</span>
+                {picked > 0 && <span className="text-xs text-white/60 shrink-0">{picked}×</span>}
+                {i === q.answer && <span>✓</span>}
+              </div>
+            );
+          })}
+        </div>
+        {q.explanation && <div className="text-sm text-white/80 text-center rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5">💡 {L(q.explanation, lang)}</div>}
+        <ul className="space-y-1">
+          {rows.map(({ p: pl, answered, correct, points }) => (
+            <li key={pl.id} className={`flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 ${correct ? 'bg-green-500/15' : answered ? 'bg-red-500/10' : 'bg-black/20 opacity-60'}`}>
+              <Avatar player={pl} size={28} />
+              <span className="flex-1 min-w-0 font-semibold truncate">{pl.name}</span>
+              <span className="text-sm">{correct ? '✅' : answered ? '❌' : '—'}</span>
+              <span className="font-black tabular-nums w-14 text-right">{points ? `+${points}` : ''}</span>
+              <span className="font-black tabular-nums w-12 text-right text-white/70">{pl.score}</span>
+            </li>
+          ))}
+        </ul>
+        {state.settings.teamCount > 0 && <TeamScores t={t} teams={teamScores(ps, state.settings)} />}
+        <button onClick={() => { sfx('click'); if (host) host.clearAnswers(); engine.nextRound(); }} className="w-full py-3.5 rounded-full font-extrabold text-lg btn-press shadow-lg text-white" style={accentBtn}>{over ? `🏁 ${t.finish}` : `▶ ${t.next}`}</button>
+      </div>
+    );
   } else if (state.status === 'result') {
     const r = state.lastResult;
     const p = byId(r.playerId);

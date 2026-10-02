@@ -181,6 +181,7 @@ function SettingRow({ title, desc, children }) {
 function SideMenu({
   open, onClose, t, lang, setLang, openModes, onToggleMode, activeGame, onPickGame,
   sub, onOpenPricing, onDevSetPlan, venue, onOpenVenue, session, onOpenParty, onOpenCreator,
+  quizPrefs, setQuizPrefs, activeDef,
   soundOn, setSoundOn, haptics, setHaptics, eliminate, setEliminate, duration, setDuration,
   history, currentGame, onClearHistory, lists, onSaveList, onLoadList, onDeleteList, canSave,
 }) {
@@ -209,6 +210,10 @@ function SideMenu({
     setName('');
   };
   const venueLocked = !Entitlements.hasFeature(sub, 'venue-mode');
+  /* Which mode the settings should describe: the game being played, else the open screen */
+  const modeId = activeGame.mode;
+  const modeLabel = MODE_TEXT[lang][modeId] ? MODE_TEXT[lang][modeId].title : t.general;
+  const activeCustomId = activeDef && activeDef.item ? activeDef.item.customGameId : null;
 
   return (
     <>
@@ -268,20 +273,82 @@ function SideMenu({
             </button>
           </Section>
 
-          {/* Settings */}
-          <Section title={t.settings}>
+          {/* Settings — global first, then whatever the selected mode actually uses */}
+          <Section title={`${t.settings} · ${modeLabel}`}>
             <div className="space-y-4 bg-white/5 rounded-2xl p-4 border border-white/10">
               <SettingRow title={`🔊 ${t.sound}`} desc={t.soundDesc}><Switch checked={soundOn} onChange={setSoundOn} label={t.sound} /></SettingRow>
               {'vibrate' in navigator && <SettingRow title={`📳 ${t.haptics}`} desc={t.hapticsDesc}><Switch checked={haptics} onChange={setHaptics} label={t.haptics} /></SettingRow>}
-              <SettingRow title={`☠️ ${t.eliminate}`} desc={t.eliminateDesc}><Switch checked={eliminate} onChange={setEliminate} label={t.eliminate} /></SettingRow>
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-semibold">⏱️ {t.duration}</div>
-                  <div className="text-xs text-white/80 tabular-nums font-bold">{duration}s</div>
+
+              {/* ---- Spinner ---- */}
+              {modeId === 'spinner' && (
+                <div className="space-y-4 rounded-2xl bg-black/15 border border-white/10 p-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">🎯 {MODE_TEXT[lang].spinner.title}</div>
+                  <SettingRow title={`☠️ ${t.eliminate}`} desc={t.eliminateDesc}><Switch checked={eliminate} onChange={setEliminate} label={t.eliminate} /></SettingRow>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="font-semibold">⏱️ {t.duration}</div>
+                      <div className="text-xs text-white/80 tabular-nums font-bold">{duration}s</div>
+                    </div>
+                    <input type="range" min={MIN_DURATION} max={MAX_DURATION} step="1" value={duration} onChange={(e) => setDuration(Number(e.target.value))} aria-label={t.duration} />
+                    <div className="flex justify-between text-[10px] text-white/50 mt-1"><span>{MIN_DURATION}s</span><span>{MAX_DURATION}s</span></div>
+                  </div>
                 </div>
-                <input type="range" min={MIN_DURATION} max={MAX_DURATION} step="1" value={duration} onChange={(e) => setDuration(Number(e.target.value))} aria-label={t.duration} />
-                <div className="flex justify-between text-[10px] text-white/50 mt-1"><span>{MIN_DURATION}s</span><span>{MAX_DURATION}s</span></div>
-              </div>
+              )}
+
+              {/* ---- Quiz (built-in themes) ---- */}
+              {modeId === 'quiz' && quizPrefs && (
+                <div className="space-y-3 rounded-2xl bg-black/15 border border-white/10 p-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">🧠 {MODE_TEXT[lang].quiz.title}</div>
+                  <div>
+                    <div className="font-semibold mb-1.5 text-sm">{t.quizMode}</div>
+                    <div className="grid grid-cols-2 gap-1 p-1 rounded-full bg-black/30 border border-white/10">
+                      {Object.values(QUIZ_RULESETS).map((r) => (
+                        <button key={r.id} onClick={() => setQuizPrefs({ ruleset: r.id })} aria-pressed={quizPrefs.ruleset === r.id}
+                          className={`py-1.5 rounded-full text-xs font-bold btn-press ${quizPrefs.ruleset === r.id ? 'bg-white text-slate-900' : 'text-white/70'}`}>{r.icon} {t.rulesets[r.id].name}</button>
+                      ))}
+                    </div>
+                    <div className="text-[11px] text-white/55 mt-1.5">{t.rulesets[quizPrefs.ruleset] ? t.rulesets[quizPrefs.ruleset].desc : ''}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold mb-1.5 text-sm">{t.difficulty}</div>
+                    <div className="grid grid-cols-4 gap-1 p-1 rounded-full bg-black/30 border border-white/10">
+                      {['all', ...DIFFICULTIES].map((d) => (
+                        <button key={d} onClick={() => setQuizPrefs({ difficulty: d })} aria-pressed={quizPrefs.difficulty === d}
+                          className={`py-1.5 rounded-full text-[11px] font-bold btn-press ${quizPrefs.difficulty === d ? 'bg-white text-slate-900' : 'text-white/70'}`}>{d === 'all' ? t.allLevels : t.difficultyLabels[d]}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold mb-1.5 text-sm">{t.questions}</div>
+                    <div className="grid grid-cols-4 gap-1 p-1 rounded-full bg-black/30 border border-white/10">
+                      {[5, 10, 15, 20].map((n) => (
+                        <button key={n} onClick={() => setQuizPrefs({ count: n })} aria-pressed={quizPrefs.count === n}
+                          className={`py-1.5 rounded-full text-xs font-bold btn-press ${quizPrefs.count === n ? 'bg-white text-slate-900' : 'text-white/70'}`}>{n}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ---- Custom game: its rules live in the editor, so link there ---- */}
+              {modeId === 'mygames' && (
+                <div className="space-y-2 rounded-2xl bg-black/15 border border-white/10 p-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">🎓 {MODE_TEXT[lang].mygames.title}</div>
+                  <div className="text-[11px] text-white/60">{t.customSettingsHint}</div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {activeCustomId && <button onClick={() => onOpenCreator('editor', activeCustomId)} className="min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold btn-press">✏️ {t.editGame}</button>}
+                    <button onClick={() => onOpenCreator('bank')} className={`min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold btn-press ${activeCustomId ? '' : 'col-span-2'}`}>📚 {t.questionBank}</button>
+                  </div>
+                </div>
+              )}
+
+              {/* ---- Modes whose rules are chosen on the game's own setup screen ---- */}
+              {['battle', 'king', 'minigames', 'cards'].includes(modeId) && (
+                <div className="rounded-2xl bg-black/15 border border-white/10 p-3 text-[11px] text-white/55">
+                  {MODE_TEXT[lang][modeId].title} · {t.setupOnGameScreen}
+                </div>
+              )}
+
               <div>
                 <div className="font-semibold mb-2">🌐 {t.language}</div>
                 <div className="grid grid-cols-2 gap-1 p-1 rounded-full bg-black/30 border border-white/10">

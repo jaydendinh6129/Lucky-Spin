@@ -41,7 +41,11 @@ Build your own quiz for a party, a class or a revision session:
 - **Images** — upload, preview, replace, remove; on the question and on individual answer options. Stored as real Blobs in IndexedDB on your device, downscaled to ≤1280px — nothing is uploaded anywhere
 - **Timer** — per game (none · 10 · 20 · 30 · 60 s) with a per-question override; plus random question order, random answer order and no-repeat
 - **Teams** — individual or 2–4 teams, manual or random assignment, live team standings and a team ranking on the result screen
-- **Host controls** mid-game: skip or restart the current question
+- **Host controls** mid-game: reveal, skip or restart the current question
+- **Live classroom** — when phones are connected to the room, the quiz switches from pass-the-phone to everyone-answers-at-once: the host screen is the projector (question, options, a live "3 / 18 answered" bar), each student taps an answer on their own device, the round closes as soon as everybody has answered, and all students are scored together with their own speed bonus
+
+### ⚙️ Contextual settings
+The Settings panel shows what the selected mode actually uses: elimination and spin duration for the Spinner, rules / difficulty / question count for the Quiz, a link to the editor for a custom game, and nothing but the global options elsewhere.
 
 ### 🎉 Party session
 Shared player roster (add / rename / remove / shuffle), per-game selection and teams, game history with "most wins / longest streak / most played / most points" summary. Everything is stored locally.
