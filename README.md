@@ -1,8 +1,10 @@
-# Party Games 🎉
+# JParty 🎉
 
 **Live demo:** <https://jaydendinh6129.github.io/Lucky-Spin/> (GitHub Pages, served from `main`)
 
-A premium, offline-ready **party-game console** that grew out of Party Spinner: the original wheel plus Battle, King of the Table, Quiz, Mini Games and Cards, a shared party session, a FREE / PRO / MAX plan layer and (MAX) venue branding with real-time multiplayer. No build step — plain JSX compiled in the browser.
+**JParty** is a fun, social party-game platform — for drinking games and friends hanging out, group battles, quiz competitions, card games, and just as happily for classrooms and small-group activities.
+
+It grew out of Party Spinner: the original wheel plus Battle, King of the Table, a theme-based Quiz, Mini Games and Cards, a shared party session, a FREE / PRO / MAX plan layer and (MAX) venue branding with real-time multiplayer. Offline-ready, no build step — plain JSX compiled in the browser.
 
 > **Working on the code (humans or AI agents)?** Start with [`CLAUDE.md`](CLAUDE.md) (conventions, rules, checklists) and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (boot order, routing, game-engine state machine, realtime protocol, and a verified index of every top-level function/component per file).
 
@@ -26,7 +28,7 @@ Physics wheel with flick-to-spin, per-theme skins (wooden *bàn nhậu*, casino 
 | --- | --- |
 | ⚔️ Battle | Quick Battle (Bo1/3/5) · Best of 3 · Streak Battle · Team Battle · Elimination Battle |
 | 👑 King of the Table | Classic King · King Challenge · Last King Standing |
-| 🧠 Quiz | General · Beer & Drinks · Music · Movies · Sports · Random (bilingual bank, +100 and speed bonus) |
+| 🧠 Quiz | **Theme-based**: Animals · Flags Around the World · Representative Animals · Mix — 794 bilingual questions, multiple-choice and true/false, real flag images, Party (15 s + speed bonus) or Classroom (25 s, child-safe) rules, difficulty filter, no repeats within a game or across recent games |
 | 🎲 Mini Games | Rock Paper Scissors · 5 Second Rule · Don't Laugh · Reaction Test · Memory · Word Challenge |
 | 🃏 Cards | Challenge · Truth · Dare · Wild (re-spin, target, shield, switch, double) · Chaos (everyone, swap, reverse, double round, random target) — effects are real state changes |
 
@@ -51,7 +53,9 @@ The host device is authoritative. Phones open `index.html#join=CODE` (QR or 6-le
 index.html                 shell: CSS + ordered <script type="text/babel"> tags
 css/app.css                all styles
 js/engine/                 util · audio · effects · random · score · timer · player · game (state machine) · session
-js/data/                   themes · i18n (EN/VI) · registry (modes, games, metadata, plans) · challenges · questions · cards
+js/data/                   themes · i18n (EN/VI) · registry (modes, games, metadata, plans) · challenges · cards
+js/data/quiz/              one data pack per quiz theme (plain JS, bilingual questions + reference tables)
+js/quiz/quizEngine.js      quiz theme registry, question model, generators, rule sets, fair dealing
 js/subscription/plans.js   plan state, feature registry, entitlements, IS_DEV
 js/venue/                  venue profile & branding · VenueView · BigScreen
 js/realtime/               transport (BroadcastChannel + PeerJS) · host session · player client

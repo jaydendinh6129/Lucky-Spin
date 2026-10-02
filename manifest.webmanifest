@@ -1,7 +1,7 @@
 {
-  "name": "Party Games",
-  "short_name": "Party Games",
-  "description": "Spin, battle, quiz and draw your fate — a premium party-game console.",
+  "name": "JParty",
+  "short_name": "JParty",
+  "description": "Spin, battle, quiz and draw your fate — party games for friends, parties and classrooms.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

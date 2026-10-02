@@ -30,16 +30,13 @@ const GAME_REGISTRY = {
       'last-king':      { id: 'last-king', icon: '💀', plan: 'pro', component: 'king', variant: 'last', players: [3, 12], duration: '5–15 min', scoring: 'elimination', difficulty: 'hard' },
     },
   },
+  /* Quiz items are generated from the quiz theme registry (js/quiz/quizEngine.js + js/data/quiz/*) */
   quiz: {
     id: 'quiz', icon: '🧠', accent: '#60a5fa', type: 'games',
-    games: {
-      'quiz-general': { id: 'quiz-general', icon: '🌎', plan: 'free', component: 'quiz', category: 'general', players: [1, 12], duration: '5 min', scoring: 'points', difficulty: 'medium' },
-      'quiz-beer':    { id: 'quiz-beer', icon: '🍺', plan: 'pro', component: 'quiz', category: 'beer', players: [1, 12], duration: '5 min', scoring: 'points', difficulty: 'medium' },
-      'quiz-music':   { id: 'quiz-music', icon: '🎵', plan: 'pro', component: 'quiz', category: 'music', players: [1, 12], duration: '5 min', scoring: 'points', difficulty: 'medium' },
-      'quiz-movies':  { id: 'quiz-movies', icon: '🎬', plan: 'pro', component: 'quiz', category: 'movies', players: [1, 12], duration: '5 min', scoring: 'points', difficulty: 'medium' },
-      'quiz-sports':  { id: 'quiz-sports', icon: '⚽', plan: 'pro', component: 'quiz', category: 'sports', players: [1, 12], duration: '5 min', scoring: 'points', difficulty: 'medium' },
-      'quiz-random':  { id: 'quiz-random', icon: '🎲', plan: 'pro', component: 'quiz', category: 'random', players: [1, 12], duration: '5 min', scoring: 'points', difficulty: 'hard' },
-    },
+    games: Object.fromEntries(QUIZ_THEMES.map((th) => [`quiz-${th.id}`, {
+      id: `quiz-${th.id}`, icon: th.icon, plan: th.plan, component: 'quiz', quizTheme: th.id,
+      players: [1, 12], duration: '5 min', scoring: 'points', difficulty: th.difficulty,
+    }])),
   },
   minigames: {
     id: 'minigames', icon: '🎲', accent: '#34d399', type: 'games',
@@ -92,8 +89,8 @@ const MODE_TEXT = {
 
 /* title / description / howToPlay for every game. Themes reuse THEME_TEXT plus the spinner how-to. */
 const QUIZ_HOWTO = {
-  en: 'Pass the phone around — each question goes to the next player. 15 seconds per question: +100 for a correct answer plus a speed bonus of up to +50.',
-  vi: 'Chuyền điện thoại — mỗi câu hỏi tới lượt người kế tiếp. 15 giây mỗi câu: +100 nếu đúng, cộng thêm tối đa +50 điểm tốc độ.',
+  en: 'Pick a theme, Party or Classroom rules and a difficulty. Pass the phone around (or play as teams) — each question goes to the next player. Party: 15 s and a speed bonus up to +50. Classroom: 25 s, no speed bonus, child-friendly questions only.',
+  vi: 'Chọn chủ đề, luật Tiệc hoặc Lớp học và độ khó. Chuyền điện thoại (hoặc chơi theo đội) — mỗi câu tới lượt người kế tiếp. Tiệc: 15 giây, thưởng tốc độ tới +50. Lớp học: 25 giây, không thưởng tốc độ, chỉ câu hỏi phù hợp trẻ em.',
 };
 const GAME_META_TEXT = {
   en: {
@@ -159,8 +156,10 @@ const SPINNER_HOWTO = {
 /* Everything the UI needs to describe a game or theme, in the current language */
 const gameMeta = (lang, mode, item) => {
   const th = mode.type === 'themes' ? THEME_TEXT[lang][item.id] : null;
+  const qt = item.quizTheme ? quizTheme(item.quizTheme) : null;
   const txt = th
     ? { title: th.name, description: th.tagline, howToPlay: SPINNER_HOWTO[lang] }
+    : qt ? { title: L(qt.title, lang), description: `${L(qt.description, lang)} · ${qt.questions.length} ${lang === 'vi' ? 'câu hỏi' : 'questions'}`, howToPlay: QUIZ_HOWTO[lang] }
     : (GAME_META_TEXT[lang][item.id] || { title: item.id, description: '', howToPlay: '' });
   return { ...txt, id: item.id, icon: item.icon, plan: item.plan || 'free', players: item.players, duration: item.duration, scoring: item.scoring, difficulty: item.difficulty };
 };

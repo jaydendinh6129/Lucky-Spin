@@ -241,7 +241,7 @@ function App() {
   const shareWheel = async () => {
     const url = `${baseUrl()}#w=${b64url.enc(JSON.stringify({ t: themeKey, i: items }))}`;
     if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      try { await navigator.share({ title: 'Party Spinner', url }); return; } catch (e) { if (e.name === 'AbortError') return; }
+      try { await navigator.share({ title: 'JParty', url }); return; } catch (e) { if (e.name === 'AbortError') return; }
     }
     if (await copyText(url)) showToast(t.linkCopied);
   };
@@ -289,6 +289,7 @@ function App() {
     modeTitle: MODE_TEXT[lang][activeDef.mode.id].title,
     players: session.players, setPlayers, sfx, haptics, theme, celebrate: celebrateGame, showToast, publish: setStage,
     onExit: backToSpinner, onChangeGame: () => setMenuOpen(true), onBackToParty: openParty, onFinish: finishGame,
+    sub, openItem: (modeId, itemId) => { const def = findGame(modeId, itemId); if (def) pickGame(def.mode, def.item, !Entitlements.canPlay(sub, def.item)); },
   } : null;
   const keysBlocked = menuOpen || !!upgrade || screen !== 'play' || bigScreen;
 

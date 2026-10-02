@@ -1,4 +1,4 @@
-# Party Games — guide for AI agents and new contributors
+# JParty — guide for AI agents and new contributors
 
 Read this first, then `docs/ARCHITECTURE.md` (flows + full function index), then the file you need.
 
@@ -47,3 +47,13 @@ Add an entry to `THEMES` (`js/data/themes.js`) with `plan`, palette, gradients, 
 - Prefer small pure helpers in `js/engine/*`; components stay declarative.
 - Tailwind utility classes (CDN) + a few hand-written animations in `css/app.css`.
 - Commit messages: imperative summary, body explains *why*.
+
+## Adding a quiz theme (no engine changes needed)
+1. Create `js/data/quiz/<theme>.js` — a plain `<script>` (not Babel) that pushes one pack:
+   `(window.JPARTY_QUIZ_PACKS = window.JPARTY_QUIZ_PACKS || []).push({ id, order, icon, accent, plan, difficulty, title:{en,vi}, description:{en,vi}, questions:[…] })`
+   Each question: `{ type:'mc'|'tf', difficulty:'easy'|'medium'|'hard', question_en, question_vi, options_en[4], options_vi[4], answer, explanation_en?, explanation_vi?, tags[], adult?, media?, options_media? }`
+   (`tf` ignores the options you pass and uses True/False · Đúng/Sai.)
+2. Add the `<script src="js/data/quiz/<theme>.js?v=…">` tag in `index.html` **before** `js/quiz/quizEngine.js`, and the path to `SHELL` in `sw.js`. Bump `?v=`.
+That's it: the sidebar item, registry entry, ⓘ metadata and theme card are generated from the pack.
+A pack may also ship reference `tables` plus `generate: [{ use:'flags'|'associations', from:'<table>' }]` to expand rows into questions (see `QUIZ_GENERATORS`).
+Content is regenerated with `python3 tools/build-quiz-packs.py <workflow-journal.jsonl>`; edit the packs by hand freely.

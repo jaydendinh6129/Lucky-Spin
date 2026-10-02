@@ -226,7 +226,7 @@ function SpinnerView({ t, lang, theme, skin, themeText, items, setItems, elimina
   const shareResult = async () => {
     const text = t.shareText(winner.label);
     if (navigator.share) {
-      try { await navigator.share({ title: 'Party Spinner', text }); return; } catch (e) { if (e.name === 'AbortError') return; }
+      try { await navigator.share({ title: 'JParty', text }); return; } catch (e) { if (e.name === 'AbortError') return; }
     }
     if (await copyText(text)) showToast(t.copied);
   };

@@ -43,6 +43,7 @@ function StageView({ t, stage, meId, big }) {
         </div>
       )}
       {me && stage.status === 'challenge' && <div className="inline-block px-4 py-1.5 rounded-full bg-yellow-300 text-yellow-900 font-black text-sm pulse-soft">⚡ {t.youAreUp}</div>}
+      {stage.image && stage.status === 'challenge' && <img src={stage.image} alt="" className={`mx-auto rounded-xl ring-1 ring-white/20 shadow-xl ${big ? 'h-[22vmin]' : 'h-24'}`} />}
       {stage.challenge && stage.status === 'challenge' && <p className={`font-black leading-snug ${big ? 'text-[clamp(22px,5vmin,64px)] max-w-5xl mx-auto' : 'text-lg'}`}>{stage.challenge}</p>}
       {stage.timerMs != null && stage.status === 'challenge' && <div className={`font-black tabular-nums ${big ? 'text-[clamp(60px,14vmin,180px)] leading-none' : 'text-5xl'} ${stage.timerMs < 3000 ? 'text-red-300' : ''}`}>{String(Math.ceil(stage.timerMs / 1000)).padStart(2, '0')}</div>}
       {stage.status === 'finished' && stage.winner.length > 0 && (
@@ -121,7 +122,7 @@ function PlayerClient({ code }) {
         <div className="flex items-center gap-2 min-w-0">
           {venue && venue.logo ? <img src={venue.logo} alt="" className="w-10 h-10 rounded-xl object-cover border border-white/20" /> : <span className="text-2xl">🎉</span>}
           <div className="min-w-0">
-            <div className="font-extrabold truncate">{venue ? venue.name : 'Party Games'}</div>
+            <div className="font-extrabold truncate">{venue ? venue.name : 'JParty'}</div>
             <div className="text-[11px] text-white/60 truncate">{venue ? t.poweredByPG : `${t.room} ${code}`}{venue && venue.table ? ` · ${t.tableLabel} ${venue.table}` : ''}</div>
           </div>
         </div>

@@ -26,7 +26,7 @@ function useHostSession({ venue, players, setPlayers, stage, sub }) {
       stage: st ? {
         icon: st.icon, title: st.title, status: st.status, round: st.round, total: st.total || null,
         participants: (st.participants || []).map((p) => ({ id: p.id, name: p.name, avatar: p.avatar, color: p.color })),
-        roles: st.roles || null, challenge: st.challenge || null, timerMs: st.timerMs == null ? null : st.timerMs,
+        roles: st.roles || null, challenge: st.challenge || null, image: st.image || null, timerMs: st.timerMs == null ? null : st.timerMs,
         scores: (st.scores || []).map((p) => ({ id: p.id, name: p.name, avatar: p.avatar, score: p.score, eliminated: p.eliminated })),
         winner: (st.winner || []).map((p) => ({ id: p.id, name: p.name, avatar: p.avatar })), winnerLabel: st.winnerLabel || null,
       } : null,

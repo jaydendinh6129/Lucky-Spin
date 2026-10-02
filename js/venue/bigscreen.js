@@ -12,7 +12,7 @@ function BigScreen({ t, venue, stage, session, room, onClose }) {
       <div className="flex items-center gap-4 mb-[3vmin]">
         {venue && venue.logo && <img src={venue.logo} alt="" className="rounded-3xl object-cover border border-white/20 shadow-2xl" style={{ width: '12vmin', height: '12vmin' }} />}
         <div className="text-left">
-          <div className="bs-title brand-accent">{venue ? venue.name.toUpperCase() : 'PARTY GAMES'}</div>
+          <div className="bs-title brand-accent">{venue ? venue.name.toUpperCase() : 'JPARTY'}</div>
           <div className="bs-sub">{venue ? (venue.tagline || t.poweredByPG) : t.panelTitle}{venue && venue.table ? ` · ${t.tableLabel} ${venue.table}` : ''}</div>
         </div>
       </div>
