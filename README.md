@@ -34,6 +34,15 @@ Physics wheel with flick-to-spin, per-theme skins (wooden *bàn nhậu*, casino 
 
 Every item has an **ⓘ popover** (hover on desktop, tap on touch) generated from its metadata: description, how to play, players, duration, scoring, difficulty, and the plan that unlocks it.
 
+### 🎓 Creator — custom games & Question Bank
+Build your own quiz for a party, a class or a revision session:
+- **Question Bank** — reusable bilingual questions with search, topic and difficulty filters; seed it from any built-in theme in one tap
+- **Create / edit games** — title, icon, add questions from the bank or write new ones inline, drag to reorder, preview, save, **duplicate** (the copy shares the same question records)
+- **Images** — upload, preview, replace, remove; on the question and on individual answer options. Stored as real Blobs in IndexedDB on your device, downscaled to ≤1280px — nothing is uploaded anywhere
+- **Timer** — per game (none · 10 · 20 · 30 · 60 s) with a per-question override; plus random question order, random answer order and no-repeat
+- **Teams** — individual or 2–4 teams, manual or random assignment, live team standings and a team ranking on the result screen
+- **Host controls** mid-game: skip or restart the current question
+
 ### 🎉 Party session
 Shared player roster (add / rename / remove / shuffle), per-game selection and teams, game history with "most wins / longest streak / most played / most points" summary. Everything is stored locally.
 

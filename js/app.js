@@ -43,7 +43,9 @@ function App() {
 
   /* ---------- UI state ---------- */
   const [menuOpen, setMenuOpen]   = useState(false);
-  const [screen, setScreen]       = useState('play'); // play | party | pricing | venue
+  const [screen, setScreen]       = useState('play'); // play | party | pricing | venue | mygames | bank | editor
+  const [editorGameId, setEditorGameId] = useState(null);
+  const [contentRev, setContentRev] = useState(0);   // tăng mỗi khi nội dung tự tạo đổi → re-render
   const [upgrade, setUpgrade]     = useState(null);   // { plan, meta } → UpgradeModal
   const [bigScreen, setBigScreen] = useState(false);
   const [party, setParty]         = useState(false);  // full-screen party mode (spinner)
@@ -119,6 +121,14 @@ function App() {
     if (bigScreen && !Entitlements.hasFeature(sub, 'big-screen')) setBigScreen(false);
   }, [sub]);
 
+  /* Custom games live in IndexedDB, so they arrive after first paint and are
+   * merged into the quiz theme registry (and the sidebar) when they do. */
+  const reloadContent = useCallback(async () => {
+    try { await refreshCustomContent(); setContentRev((n) => n + 1); }
+    catch (e) { console.warn('[content]', e); }
+  }, []);
+  useEffect(() => { reloadContent(); }, [reloadContent]);
+
   /* A reloaded MAX host reopens its room with the same code, so connected phones simply reconnect.
    * The flag lives in sessionStorage: only the tab that hosted comes back as host, a second tab never does. */
   useEffect(() => {
@@ -157,6 +167,15 @@ function App() {
   }, [sfx]);
   const finishGame = useCallback((entry) => setSession((s) => recordGame(s, entry)), []);
   const goPlay = () => { setScreen('play'); setMenuOpen(false); };
+  const openCreator = (view, gameId) => { sfx('click'); setEditorGameId(gameId || null); setScreen(view); setMenuOpen(false); };
+  /* A custom game is a quiz theme, so playing it is the same code path as any other game */
+  const playCustomGame = (game) => {
+    const def = findGame('mygames', `quiz-custom:${game.id}`);
+    if (!def) { showToast(t.vNoQuestions); return; }
+    setActiveGame({ mode: 'mygames', id: def.item.id });
+    setGameRun((n) => n + 1);
+    goPlay();
+  };
   const backToSpinner = () => { sfx('click'); setActiveGame({ mode: 'spinner', id: themeKey }); goPlay(); };
 
   /* ---------- Sidebar actions ---------- */
@@ -298,6 +317,14 @@ function App() {
     main = <PricingView t={t} sub={sub} onUpgrade={doUpgrade} onBack={goPlay} />;
   } else if (screen === 'party') {
     main = <PartyView t={t} lang={lang} session={session} setSession={setSession} onBack={goPlay} sfx={sfx} />;
+  } else if (screen === 'mygames') {
+    main = <MyGamesView key={contentRev} t={t} lang={lang} sfx={sfx} showToast={showToast} onBack={goPlay} onChanged={reloadContent}
+      onCreate={() => openCreator('editor', null)} onEdit={(g) => openCreator('editor', g.id)} onPlay={playCustomGame} onOpenBank={() => openCreator('bank')} />;
+  } else if (screen === 'bank') {
+    main = <QuestionBankView key={contentRev} t={t} lang={lang} sfx={sfx} showToast={showToast} onBack={() => setScreen('mygames')} onChanged={reloadContent} />;
+  } else if (screen === 'editor') {
+    main = <GameEditorView key={`${editorGameId || 'new'}-${contentRev}`} t={t} lang={lang} gameId={editorGameId} sfx={sfx} showToast={showToast}
+      onBack={() => setScreen('mygames')} onChanged={reloadContent} onPlay={playCustomGame} />;
   } else if (screen === 'venue' && typeof VenueView !== 'undefined') {
     main = <VenueView t={t} lang={lang} venue={venue} setVenue={setVenue} sub={sub} session={session} setPlayers={setPlayers} stage={stage} host={host} sfx={sfx} showToast={showToast} onBack={goPlay} onBigScreen={toggleBigScreen} />;
   } else if (inGame) {
@@ -332,9 +359,9 @@ function App() {
 
       <SideMenu
         open={menuOpen} onClose={() => setMenuOpen(false)} t={t} lang={lang} setLang={setLang}
-        openModes={openModes} onToggleMode={toggleMode} activeGame={screen === 'play' ? activeGame : { mode: screen, id: '' }} onPickGame={pickGame}
+        openModes={openModes} onToggleMode={toggleMode} activeGame={screen === 'play' ? activeGame : { mode: screen === 'editor' || screen === 'bank' ? 'mygames' : screen, id: '' }} onPickGame={pickGame}
         sub={sub} onOpenPricing={openPricing} onDevSetPlan={devSetPlan} venue={brand} onOpenVenue={openVenue}
-        session={session} onOpenParty={openParty}
+        session={session} onOpenParty={openParty} onOpenCreator={openCreator}
         soundOn={soundOn} setSoundOn={setSoundOn} haptics={haptics} setHaptics={setHaptics}
         eliminate={eliminate} setEliminate={setEliminate} duration={duration} setDuration={setDuration}
         history={history} currentGame={activeGame} onClearHistory={clearHistoryFor}

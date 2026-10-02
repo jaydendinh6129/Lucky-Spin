@@ -136,7 +136,7 @@ function GameItem({ t, lang, mode, item, active, locked, onPick }) {
   );
 }
 
-function GameModeAccordion({ t, lang, mode, open, onToggle, activeGame, sub, onPickGame }) {
+function GameModeAccordion({ t, lang, mode, open, onToggle, activeGame, sub, onPickGame, footer }) {
   const mt = MODE_TEXT[lang][mode.id];
   const hasActive = activeGame.mode === mode.id;
   return (
@@ -161,6 +161,7 @@ function GameModeAccordion({ t, lang, mode, open, onToggle, activeGame, sub, onP
                 <GameItem key={item.id} t={t} lang={lang} mode={mode} item={item} active={hasActive && activeGame.id === item.id} locked={!Entitlements.canPlay(sub, item)} onPick={onPickGame} />
               ))}
             </ul>
+            {footer}
           </div>
         </div>
       </div>
@@ -179,7 +180,7 @@ function SettingRow({ title, desc, children }) {
 
 function SideMenu({
   open, onClose, t, lang, setLang, openModes, onToggleMode, activeGame, onPickGame,
-  sub, onOpenPricing, onDevSetPlan, venue, onOpenVenue, session, onOpenParty,
+  sub, onOpenPricing, onDevSetPlan, venue, onOpenVenue, session, onOpenParty, onOpenCreator,
   soundOn, setSoundOn, haptics, setHaptics, eliminate, setEliminate, duration, setDuration,
   history, currentGame, onClearHistory, lists, onSaveList, onLoadList, onDeleteList, canSave,
 }) {
@@ -233,7 +234,17 @@ function SideMenu({
           <Section title={t.gameModes}>
             <div className="space-y-2">
               {GAME_MODES.map((mode) => (
-                <GameModeAccordion key={mode.id} t={t} lang={lang} mode={mode} open={openModes.includes(mode.id)} onToggle={() => onToggleMode(mode.id)} activeGame={activeGame} sub={sub} onPickGame={onPickGame} />
+                <GameModeAccordion key={mode.id} t={t} lang={lang} mode={mode} open={openModes.includes(mode.id)} onToggle={() => onToggleMode(mode.id)} activeGame={activeGame} sub={sub} onPickGame={onPickGame}
+                  footer={mode.id === 'mygames' ? (
+                    <div className="px-1.5 pt-2 space-y-1.5">
+                      {mode.items.length === 0 && <div className="text-[11px] text-white/45 px-1">{t.noGamesYet}</div>}
+                      <button onClick={() => onOpenCreator('editor', null)} className="w-full min-h-[44px] rounded-xl font-bold text-sm btn-press text-white shadow" style={{ background: 'linear-gradient(90deg, #a78bfa, #f472b6)' }}>+ {t.createGame}</button>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button onClick={() => onOpenCreator('mygames')} className="min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold btn-press">🎓 {t.myGames}</button>
+                        <button onClick={() => onOpenCreator('bank')} className="min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold btn-press">📚 {t.questionBank}</button>
+                      </div>
+                    </div>
+                  ) : null} />
               ))}
             </div>
           </Section>

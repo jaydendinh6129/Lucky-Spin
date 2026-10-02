@@ -57,3 +57,13 @@ Add an entry to `THEMES` (`js/data/themes.js`) with `plan`, palette, gradients, 
 That's it: the sidebar item, registry entry, ⓘ metadata and theme card are generated from the pack.
 A pack may also ship reference `tables` plus `generate: [{ use:'flags'|'associations', from:'<table>' }]` to expand rows into questions (see `QUIZ_GENERATORS`).
 Content is regenerated with `python3 tools/build-quiz-packs.py <workflow-journal.jsonl>`; edit the packs by hand freely.
+
+## Creator (user-created content)
+Three layers, deliberately separate — see `docs/ARCHITECTURE.md` §13:
+- **Content**: `js/content/store.js` — IndexedDB (`questions`, `games`, `images`). Async; swapping it for a real API means rewriting only this file.
+- **Configuration**: a Game holds `questionIds[]` (**references, never copies** — that is why Duplicate is cheap and a question is reusable).
+- **Live session**: unchanged — `useGameEngine` + `session`.
+
+`js/content/customGames.js` turns each custom game into a quiz theme (`custom:<gameId>`), so it plays through the **same** `QuizGame` and the same state machine. `registerCustomQuizThemes()` merges them into `QUIZ_THEMES`; `syncCustomGames()` fills `GAME_REGISTRY.mygames`. Both mutate in place because other modules hold references.
+
+Gotchas: images are object URLs that die on reload, so call `refreshCustomContent()` (not a cached theme) after any content change; question IDs must be unique per theme or the engine de-duplicates them away.

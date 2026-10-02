@@ -24,7 +24,7 @@ function QuizMedia({ media, lang, size = 'lg' }) {
 function QuizThemeCards({ t, lang, currentId, prefs, sub, onPick }) {
   return (
     <div className="grid grid-cols-2 gap-2.5">
-      {QUIZ_THEMES.map((th) => {
+      {QUIZ_THEMES.filter((th) => !th.custom).map((th) => {
         const active = th.id === currentId;
         const n = quizPool(th.id, prefs).length;
         const mix = difficultyMix(quizPool(th.id, { ...prefs, difficulty: 'all' }));
@@ -60,11 +60,15 @@ function QuizThemeCards({ t, lang, currentId, prefs, sub, onPick }) {
 
 function QuizGame({ ctx }) {
   const { t, lang, mode, item, meta, modeTitle, players: partyPlayers, setPlayers, sfx, celebrate, onExit, onChangeGame, onBackToParty, onFinish, publish, sub, openItem } = ctx;
+  const custom = item.customGameId ? quizTheme(item.quizTheme) : null;
   const [minP, maxP] = item.players;
   const theme = quizTheme(item.quizTheme);
-  const [prefs, setPrefsState] = useState(loadQuizPrefs);
-  const setPrefs = (patch) => setPrefsState((p) => { const next = { ...p, ...patch }; saveQuizPrefs(next); return next; });
-  const rs = QUIZ_RULESETS[prefs.ruleset] || QUIZ_RULESETS.party;
+  const [prefs, setPrefsState] = useState(() => (custom ? { ...loadQuizPrefs(), ruleset: 'custom', difficulty: 'all' } : loadQuizPrefs()));
+  const setPrefs = (patch) => setPrefsState((p) => { const next = { ...p, ...patch }; if (!custom) saveQuizPrefs(next); else setPrefsState(next); return next; });
+  const rs = rulesetFor(item.quizTheme, prefs.ruleset);
+  /* 0 = cá nhân; 2|3|4 = chia đội. Custom game mặc định theo cấu hình của nó. */
+  const [teamCount, setTeamCount] = useState(() => (custom && custom.config ? custom.config.teams : 0));
+  const [teams, setTeams] = useState({});
   const available = useMemo(() => (theme ? quizPool(theme.id, prefs).length : 0), [theme, prefs.ruleset, prefs.difficulty]);
   const [selected, setSelected] = useState(() => defaultSelection(partyPlayers, item.players));
   useEffect(() => { setSelected((sel) => sel.filter((id) => partyPlayers.some((p) => p.id === id))); }, [partyPlayers]);
@@ -80,8 +84,10 @@ function QuizGame({ ctx }) {
       const { playerId, q } = s.current;
       const r = s.settings.rules;
       const correct = answer === q.answer;
-      const bonus = correct ? Math.round(r.speedBonus * clamp(1 - ms / r.time, 0, 1)) : 0;
-      const points = correct ? r.points + bonus : 0;
+      const qTime = q.timeMs != null ? q.timeMs : r.time;
+      const base = q.points != null ? q.points : r.points;
+      const bonus = correct && qTime > 0 ? Math.round(r.speedBonus * clamp(1 - ms / qTime, 0, 1)) : 0;
+      const points = correct ? base + bonus : 0;
       const players = correct ? Score.addPoints(Score.incrementStreak(s.players, playerId), playerId, points) : Score.resetStreak(s.players, playerId);
       const prev = s.settings.stats[playerId] || { correct: 0, answered: 0, fastest: null };
       const stats = { ...s.settings.stats, [playerId]: { correct: prev.correct + (correct ? 1 : 0), answered: prev.answered + 1, fastest: correct ? Math.min(prev.fastest ?? Infinity, ms) : prev.fastest } };
@@ -90,36 +96,67 @@ function QuizGame({ ctx }) {
     checkEnd: (s) => (s.round >= s.settings.count ? Score.leaders(s.players) : null),
   }), []);
 
+  /* Điểm đội = tổng điểm thành viên. Dùng chung Score engine, không có hệ điểm thứ hai. */
+  const teamScores = (players, settings) => {
+    const n = settings.teamCount || 0;
+    if (!n) return [];
+    return Array.from({ length: n }, (_, i) => {
+      const members = players.filter((p) => settings.teams[p.id] === i);
+      return { index: i, name: TEAM_NAMES[i], color: TEAM_COLORS[i], members, score: members.reduce((a, p) => a + p.score, 0) };
+    }).sort((a, b) => b.score - a.score);
+  };
+
   const engine = useGameEngine(rules);
   const { state } = engine;
   const ps = state.players;
   const byId = (id) => Score.byId(ps, id);
   const chosen = partyPlayers.filter((p) => selected.includes(p.id));
-  const count = Math.min(prefs.count, available);
-  const canStart = !!theme && chosen.length >= minP && chosen.length <= maxP && count > 0;
+  const count = custom ? available : Math.min(prefs.count, available);
+  const teamsOk = teamCount === 0 || chosen.length >= teamCount;
+  const canStart = !!theme && chosen.length >= minP && chosen.length <= maxP && count > 0 && teamsOk;
+  /* Mọi người chơi phải thuộc một đội trước khi bắt đầu */
+  const fullTeams = () => {
+    if (!teamCount) return {};
+    const next = { ...teams };
+    const ids = chosen.map((p) => p.id);
+    /* `== null` chứ không phải `!next[id]`: đội A là index 0, vốn là giá trị falsy */
+    ids.forEach((id, i) => { if (next[id] == null || next[id] >= teamCount) next[id] = i % teamCount; });
+    return next;
+  };
+  const randomTeams = () => {
+    const next = {};
+    shuffleArr(chosen).forEach((p, i) => { next[p.id] = i % teamCount; });
+    setTeams(next);
+    sfx('click');
+  };
   const start = () => {
     if (!canStart) return;
     sfx('click');
     const deck = dealQuiz(theme.id, prefs, count);
     rememberQuiz(theme.id, deck.map((q) => q.id));
-    engine.startGame(chosen, { count: deck.length, deck, rules: rs, stats: {} });
+    engine.startGame(chosen, { count: deck.length, deck, rules: rs, stats: {}, teamCount, teams: fullTeams() });
   };
 
   /* the timer runs while a question is on screen */
   const cur = state.current;
   const showing = state.status === 'challenge' && cur && cur.phase === 'question';
-  const time = (state.settings.rules || rs).time;
+  const baseTime = (state.settings.rules || rs).time;
+  const time = cur && cur.q && cur.q.timeMs != null ? cur.q.timeMs : baseTime;
+  const untimed = !time;                       // 0 = không giới hạn thời gian
   useEffect(() => {
-    if (!showing) { timer.stop(); return; }
+    if (!showing || untimed) { timer.stop(); return; }
     timer.start(time, () => { sfx('land'); engine.resolveRound({ answer: null, ms: time }); });
     return () => timer.stop();
-  }, [showing, state.round]);
+  }, [showing, state.round, untimed, time]);
   const answer = (i) => {
     if (!showing) return;
-    const ms = Math.min(time, performance.now() - cur.startedAt);
+    const elapsed = performance.now() - cur.startedAt;
     timer.stop();
-    engine.resolveRound({ answer: i, ms });
+    engine.resolveRound({ answer: i, ms: untimed ? elapsed : Math.min(time, elapsed) });
   };
+  /* Host controls: bỏ qua câu hiện tại / chơi lại câu này */
+  const skipQuestion = () => { timer.stop(); sfx('click'); engine.resolveRound({ answer: null, ms: time || 0 }); };
+  const restartQuestion = () => { sfx('click'); engine.patchCurrent({ startedAt: performance.now() }); if (!untimed) timer.start(time, () => { sfx('land'); engine.resolveRound({ answer: null, ms: time }); }); };
   useEffect(() => {
     if (state.status !== 'result') return;
     sfx(state.lastResult.correct ? 'win' : 'land');
@@ -152,21 +189,66 @@ function QuizGame({ ctx }) {
   } else if (state.status === 'setup') {
     body = (
       <div className="space-y-5">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.25em] text-white/55">{t.quizTitle}</div>
-          <h3 className="text-lg font-black mt-0.5">{t.chooseTheme}</h3>
-        </div>
-        <QuizThemeCards t={t} lang={lang} currentId={theme.id} prefs={prefs} sub={sub}
-          onPick={(th) => { if (th.id !== theme.id) { sfx('click'); openItem('quiz', `quiz-${th.id}`); } }} />
+        {custom ? (
+          <div className="rounded-2xl p-4 border border-white/15" style={{ background: `linear-gradient(135deg, ${theme.accent}33, ${theme.accent}0d)` }}>
+            <div className="text-[11px] uppercase tracking-[0.25em] text-white/55">{t.yourGame}</div>
+            <div className="text-xl font-black mt-0.5">{theme.icon} {L(theme.title, lang)}</div>
+            {L(theme.description, lang) && <div className="text-sm text-white/70 mt-1">{L(theme.description, lang)}</div>}
+            <div className="text-[11px] text-white/60 mt-2">{t.questionsN(available)} · ⏱ {custom.config.timerSec === 0 ? '∞' : `${custom.config.timerSec}s`}</div>
+          </div>
+        ) : (
+          <>
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.25em] text-white/55">{t.quizTitle}</div>
+              <h3 className="text-lg font-black mt-0.5">{t.chooseTheme}</h3>
+            </div>
+            <QuizThemeCards t={t} lang={lang} currentId={theme.id} prefs={prefs} sub={sub}
+              onPick={(th) => { if (th.id !== theme.id) { sfx('click'); openItem(th.custom ? 'mygames' : 'quiz', `quiz-${th.id}`); } }} />
+          </>
+        )}
         <div className="space-y-3 border-t border-white/10 pt-4">
-          <OptionPills label={t.quizMode} value={prefs.ruleset} onChange={(v) => setPrefs({ ruleset: v })}
-            options={Object.values(QUIZ_RULESETS).map((r) => ({ value: r.id, label: `${r.icon} ${t.rulesets[r.id].name}` }))} />
-          <div className="text-[11px] text-white/55 -mt-1">{t.rulesets[prefs.ruleset].desc}</div>
-          <OptionPills label={t.difficulty} value={prefs.difficulty} onChange={(v) => setPrefs({ difficulty: v })}
-            options={['all', ...DIFFICULTIES].map((d) => ({ value: d, label: d === 'all' ? t.allLevels : t.difficultyLabels[d] }))} />
-          <OptionPills label={t.questions} value={prefs.count} onChange={(v) => setPrefs({ count: v })}
-            options={[5, 10, 15, 20].map((n) => ({ value: n, label: String(n) }))} />
-          {available < prefs.count && <div className="text-[11px] text-amber-200 text-right">{t.onlyAvailable(available)}</div>}
+          {!custom && (
+            <>
+              <OptionPills label={t.quizMode} value={prefs.ruleset} onChange={(v) => setPrefs({ ruleset: v })}
+                options={Object.values(QUIZ_RULESETS).map((r) => ({ value: r.id, label: `${r.icon} ${t.rulesets[r.id].name}` }))} />
+              <div className="text-[11px] text-white/55 -mt-1">{t.rulesets[prefs.ruleset].desc}</div>
+              <OptionPills label={t.difficulty} value={prefs.difficulty} onChange={(v) => setPrefs({ difficulty: v })}
+                options={['all', ...DIFFICULTIES].map((d) => ({ value: d, label: d === 'all' ? t.allLevels : t.difficultyLabels[d] }))} />
+              <OptionPills label={t.questions} value={prefs.count} onChange={(v) => setPrefs({ count: v })}
+                options={[5, 10, 15, 20].map((n) => ({ value: n, label: String(n) }))} />
+              {available < prefs.count && <div className="text-[11px] text-amber-200 text-right">{t.onlyAvailable(available)}</div>}
+            </>
+          )}
+          <OptionPills label={t.teamsLabel} value={teamCount} onChange={(v) => { setTeamCount(v); setTeams({}); }}
+            options={[{ value: 0, label: t.individual }, { value: 2, label: '2' }, { value: 3, label: '3' }, { value: 4, label: '4' }]} />
+          {teamCount > 0 && (
+            <div className="rounded-2xl bg-black/20 border border-white/10 p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-white/55">{t.assignTeams}</span>
+                <ToolBtn onClick={randomTeams} disabled={chosen.length < teamCount}>🎲 {t.autoTeams}</ToolBtn>
+              </div>
+              {chosen.length < teamCount ? <div className="text-[11px] text-amber-200">{t.needPlayers(teamCount)}</div> : (
+                <ul className="space-y-1">
+                  {chosen.map((p) => {
+                    const ti = fullTeams()[p.id] || 0;
+                    return (
+                      <li key={p.id} className="flex items-center gap-2">
+                        <Avatar player={p} size={26} />
+                        <span className="flex-1 min-w-0 truncate text-sm font-semibold">{p.name}</span>
+                        <div className="flex gap-1">
+                          {Array.from({ length: teamCount }, (_, i) => (
+                            <button key={i} onClick={() => setTeams({ ...fullTeams(), [p.id]: i })} aria-pressed={ti === i}
+                              className={`w-7 h-7 rounded-lg text-[11px] font-black btn-press ${ti === i ? 'text-slate-900' : 'text-white/50 border border-white/20'}`}
+                              style={ti === i ? { background: TEAM_COLORS[i] } : undefined}>{TEAM_NAMES[i]}</button>
+                          ))}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
         <PlayerSetup t={t} players={partyPlayers} onChange={setPlayers} min={minP} max={maxP} selected={selected} onSelected={setSelected} sfx={sfx} />
         <button onClick={start} disabled={!canStart} className="w-full py-3.5 rounded-full font-extrabold text-lg btn-press shadow-lg disabled:opacity-40 text-white" style={accentBtn}>{theme.icon} {t.startGame}</button>
@@ -192,7 +274,9 @@ function QuizGame({ ctx }) {
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <PlayerChip player={p} label={p.streak > 1 ? `🔥${p.streak}` : ''} />
-            <TimerRing ms={timer.ms} total={time} size={72} color={theme.accent} />
+            {untimed
+              ? <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/10 border border-white/15">⏱ ∞</span>
+              : <TimerRing ms={timer.ms} total={time} size={72} color={theme.accent} />}
           </div>
           <div className="rounded-3xl p-5 bg-black/25 border border-white/15 slide-up text-center">
             <div className="flex items-center justify-center gap-2 text-[11px] uppercase tracking-[0.25em] text-white/55">
@@ -228,6 +312,10 @@ function QuizGame({ ctx }) {
               ))}
             </div>
           )}
+          <div className="flex items-center justify-center gap-2 pt-1">
+            <button onClick={restartQuestion} className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/10 border border-white/15 btn-press">↻ {t.restartQuestion}</button>
+            <button onClick={skipQuestion} className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/10 border border-white/15 btn-press">⏭ {t.skipQuestion}</button>
+          </div>
         </div>
       );
     }
@@ -257,6 +345,7 @@ function QuizGame({ ctx }) {
           ))}
         </div>
         {q.explanation && <div className="text-sm text-white/80 text-center rounded-2xl bg-white/5 border border-white/10 px-4 py-2.5">💡 {L(q.explanation, lang)}</div>}
+        {state.settings.teamCount > 0 && <TeamScores t={t} teams={teamScores(ps, state.settings)} />}
         <div className="text-left"><ScoreBoard t={t} players={ps} highlight={[r.playerId]} metricLabel={t.pts} compact /></div>
         <button onClick={() => { sfx('click'); engine.nextRound(); }} className="w-full py-3.5 rounded-full font-extrabold text-lg btn-press shadow-lg text-white" style={accentBtn}>{over ? `🏁 ${t.finish}` : `▶ ${t.next}`}</button>
       </div>
@@ -264,8 +353,10 @@ function QuizGame({ ctx }) {
   } else {
     const w = winners[0];
     const st = w ? statsOf(w.id) : null;
+    const tScores = teamScores(ps, state.settings);
     body = (
       <GameResult t={t} title={t.quizComplete} winners={winners} players={ps} metricLabel={t.pts}
+        extra={tScores.length ? <TeamScores t={t} teams={tScores} big /> : null}
         stats={w ? [`🏆 ${w.score} ${t.points}`, `✅ ${st.correct} / ${st.answered}`, `🔥 ${w.bestStreak} ${t.streakLabel}`, st.fastest != null ? `⚡ ${fmtSeconds(st.fastest)}` : null].filter(Boolean) : []}
         onPlayAgain={start} onChangeGame={onChangeGame} onBackToParty={onBackToParty} celebrate={celebrate} />
     );

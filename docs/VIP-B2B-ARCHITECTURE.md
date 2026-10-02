@@ -28,7 +28,7 @@ Server cấp **License Token** ký bằng Ed25519 (chứa `license_id`, `device_
 | "Nội dung CK: `VIP [SĐT] [UUID_Short]`" | ⚠️ Rủi ro #1 của cả hệ thống: khách sửa nội dung, bank cắt ký tự, gõ tay sai | ✅ **Khớp 3 lớp**: mã đơn ngắn → số tiền duy nhất → hàng đợi đối soát thủ công. Không bao giờ để khách thấy màn hình im lặng |
 | "Ngắt máy cũ ngay lập tức" | ⚠️ Nếu máy cũ đang giữa ván game thì mất mặt với khách của quán | ✅ Ngắt có **đếm ngược 60 giây** + thông báo rõ ràng, trừ khi admin ép ngắt |
 | Chưa đề cập | 🔴 Thiếu | **Hóa đơn VAT điện tử** — khách B2B (quán nhậu có đăng ký kinh doanh) cần hóa đơn để hạch toán. Đây là yếu tố *trust* lớn hơn cả thẻ VIP điện tử |
-| Chưa đề cập | 🔴 Thiếu | **NĐ 13/2023** về bảo vệ dữ liệu cá nhân — SĐT là dữ liệu cá nhân, cần thông báo mục đích + lưu trữ có mã hóa |
+| Chưa đề cập | 🔴 Thiếu | **Luật BVDLCN 91/2025 + NĐ 356/2025** (hiệu lực 01/01/2026, thay thế NĐ 13/2023) — SĐT là dữ liệu cá nhân; cần consent tách riêng + nhật ký consent + **hồ sơ chuyển dữ liệu ra nước ngoài** nếu dùng Cloudflare. Phạt tới 3 tỷ đ / 5% doanh thu |
 
 ---
 
@@ -151,7 +151,7 @@ sequenceDiagram
 
 ### 3.1 Nội dung chuyển khoản — thiết kế chống sai sót
 
-Trường `addInfo` của VietQR/Napas bị giới hạn độ dài và nhiều ngân hàng chuẩn hóa ký tự (bỏ dấu, cắt ký tự đặc biệt). Format đề xuất — **chỉ chữ IN HOA + số, không dấu, không ký tự đặc biệt**:
+Trường `addInfo` (EMVCo tag 62-08 "Purpose of Transaction") theo chuẩn Napas **tối đa 25 ký tự**, không dấu, không ký tự đặc biệt. (VietQR.io Quick Link ghi 50 ký tự nhưng đó là vượt chuẩn — **thiết kế theo 25**.) Format đề xuất — **chỉ chữ IN HOA + số**:
 
 ```
 JP K7M2P9 4567
@@ -161,7 +161,9 @@ JP K7M2P9 4567
  └───────────── tiền tố cố định
 ```
 
-So với format gốc `VIP [SĐT] [UUID_Short]`: ngắn hơn (an toàn với giới hạn độ dài), **không đưa trọn SĐT khách vào sao kê ngân hàng** (giảm bề mặt dữ liệu cá nhân), và mã đơn 6 ký tự Base32 = 1 tỷ tổ hợp, đủ chống trùng trong cửa sổ 30 phút.
+14 ký tự — vừa giới hạn 25 và còn dư chỗ cho text ngân hàng tự chèn. So với format gốc `VIP [SĐT] [UUID_Short]` (dễ vượt 25 ký tự): ngắn hơn, **không đưa trọn SĐT khách vào sao kê ngân hàng**, và mã đơn 6 ký tự Base32 = 1 tỷ tổ hợp.
+
+> ⚠️ **Rủi ro cao nhất chưa thể xác minh trên giấy:** không có tài liệu chính thức nào liệt kê ngân hàng nào chèn thêm text / cho sửa / cắt bớt nội dung CK. **Bắt buộc test thật bằng chuyển khoản thực tế trên 5 ngân hàng mục tiêu (VCB, Techcombank, MB, BIDV, ACB)** trước khi phát hành.
 
 ### 3.2 Khớp giao dịch 3 lớp
 
@@ -169,7 +171,8 @@ So với format gốc `VIP [SĐT] [UUID_Short]`: ngắn hơn (an toàn với gi�
 
 | Lớp | Cách khớp | Khi nào dùng |
 |---|---|---|
-| **L1 — Mã đơn** | Chuẩn hóa `description` (bỏ dấu, bỏ khoảng trắng, uppercase) → regex `JP([0-9A-HJ-NP-TV-Z]{6})` | Mặc định, ~90% đơn (khách quét QR nên nội dung tự điền) |
+| **L0 — Virtual Account** ⭐ | Mỗi đơn một **số tài khoản ảo** riêng → khớp theo `subAccount`, **không phụ thuộc nội dung CK** | Khi ngân hàng/gói dịch vụ cho phép VA. **Nếu dùng được thì dùng — nó xoá sạch rủi ro nội dung CK** |
+| **L1 — Mã đơn** | Chuẩn hóa `description` (bỏ dấu, bỏ ký tự không phải chữ/số, uppercase) → **tìm chuỗi con** `JP([0-9A-HJ-NP-TV-Z]{6})`. **Không bao giờ so khớp bằng `==`** — nhiều ngân hàng tự chèn thêm text ("CT tu …", tên người gửi) hoặc cắt bớt | Mặc định khi không có VA |
 | **L2 — Số tiền duy nhất** | Mỗi đơn có số tiền **lẻ riêng**: `299_000 + random(0..999)` → `299_347`. Khớp `amount` chính xác trong cửa sổ ±2 giờ, chỉ khi đúng **một** đơn PENDING có số tiền đó | Khi khách xóa/gõ sai nội dung |
 | **L3 — Hàng đợi thủ công** | Không khớp → `MANUAL_REVIEW` + cảnh báo Telegram cho admin + app hiện "Đã nhận chuyển khoản, đang xác nhận (≤15 phút)" kèm hotline | Phần còn lại. **Không bao giờ để màn hình im lặng** |
 
@@ -183,11 +186,14 @@ Khi tạo đơn, nếu `INSERT` vi phạm index này thì **thử lại với ph
 
 ### 3.3 Bảo mật webhook
 
-1. **Xác thực**: verify header chữ ký/secret-token của nhà cung cấp (Casso `Secure-Token`, SePay `Authorization: Apikey …`) bằng **so sánh hằng thời gian** (`timingSafeEqual`).
+1. **Xác thực**: verify header của nhà cung cấp bằng **so sánh hằng thời gian** (`timingSafeEqual`).
+   - **SePay** (khuyến nghị): `Authorization: Apikey <KEY>`, hoặc HMAC-SHA256 `sha256=HMAC(timestamp + raw_body)` — **phải đọc raw body trước khi parse JSON**; từ chối timestamp lệch > 5 phút.
+   - **Casso**: v1 dùng header `Secure-Token`; v2 dùng `X-Casso-Signature` (⚠️ cách tính chữ ký chưa có tài liệu công khai — hỏi Casso trước khi code). **Kiểm tra tài khoản của bạn đang ở v1 hay v2**: v1 trả `data` là *mảng*, v2 trả `data` là *object* với tên trường camelCase khác hẳn.
 2. **IP allowlist** tại Cloudflare WAF cho route `/v1/webhooks/*`.
 3. **Idempotency**: `UNIQUE(provider, provider_tx_id)` trên bảng `bank_transactions`. Webhook gửi lại → `INSERT … ON CONFLICT DO NOTHING` → trả `200` ngay, không kích hoạt lần hai.
 4. **Ghi log thô trước, xử lý sau**: luôn `INSERT` payload gốc vào `bank_transactions` rồi mới match. Nếu logic match có bug, dữ liệu tiền vẫn còn nguyên để chạy lại.
-5. **Trả 200 nhanh** (< 2s), xử lý nặng đẩy sang queue — tránh provider retry dồn.
+5. **Trả đúng định dạng nhà cung cấp yêu cầu, thật nhanh**: SePay bắt buộc `200/201` + body `{"success": true}` trong 30s (timeout kết nối 5s); Casso cần `200` trong **5s**, có tuỳ chọn "strict mode" cũng đòi `{"success": 1}`. Xử lý nặng đẩy sang queue.
+6. **Retry là chắc chắn xảy ra**: SePay tối đa 7 lần trong ~5 giờ; Casso tới 17 lần trong ~12 giờ rồi tự `PAUSED`. Idempotency ở mục 3 là bắt buộc, không phải tuỳ chọn.
 
 ---
 
@@ -202,7 +208,7 @@ Khi tạo đơn, nếu `INSERT` vi phạm index này thì **thử lại với ph
 | Lưu trữ | `argon2id(otp + pepper)`, **không lưu plaintext** | |
 | Số lần nhập sai | 5 → khóa challenge | Chống brute-force (4 số = 10.000 tổ hợp) |
 | Rate limit | 3 OTP/SĐT/ngày · 5/IP/giờ · 20/device/ngày | Chặn bơm chi phí ZNS |
-| Kênh | Zalo ZNS → fallback SMS brandname → fallback gọi tự động | ZNS rẻ nhất; SMS khi khách không dùng Zalo |
+| Kênh | Zalo ZNS (~**300đ**/tin, template loại *xác thực* phải được Zalo duyệt trước) → fallback SMS brandname (~**800đ**) → gọi tự động | ZNS rẻ nhất nhưng **chỉ tới được số đã đăng ký Zalo** → bắt buộc có fallback. OTP được miễn khung giờ 06:00–22:00 |
 
 > 4 chữ số + 5 lần thử là đánh đổi có chủ ý. Rủi ro thực tế rất thấp vì kẻ tấn công phải **biết trước SĐT quán** và chỉ chiếm được quyền xem game — không có dữ liệu thanh toán hay thông tin khách hàng nào trong tài khoản. Nếu sau này VIP gắn với doanh thu/báo cáo, **phải nâng lên 6 số**.
 
@@ -460,7 +466,7 @@ CREATE TABLE orders (
   shop_id      BIGINT NOT NULL REFERENCES shops,
   device_uuid  UUID NOT NULL REFERENCES devices,
   plan_id      TEXT NOT NULL,
-  amount_vnd   INT NOT NULL,                       -- đã cộng phần lẻ duy nhất
+  amount_vnd   BIGINT NOT NULL,                    -- đã cộng phần lẻ duy nhất (BIGINT: VND vượt tầm INT rất nhanh)
   memo         TEXT NOT NULL,
   status       order_status NOT NULL DEFAULT 'PENDING',
   bank_tx_id   BIGINT,                             -- → bank_transactions
@@ -477,7 +483,7 @@ CREATE TABLE bank_transactions (
   id              BIGSERIAL PRIMARY KEY,
   provider        TEXT NOT NULL,                   -- casso | sepay
   provider_tx_id  TEXT NOT NULL,
-  amount_vnd      INT NOT NULL,
+  amount_vnd      BIGINT NOT NULL,
   description     TEXT NOT NULL,
   account_no      TEXT,
   occurred_at     TIMESTAMPTZ NOT NULL,
@@ -761,7 +767,7 @@ def verify_otp(device_uuid, challenge_id, otp):
 | API + Realtime | Cloudflare Workers + Durable Objects | ~5 $ + usage |
 | CSDL | Neon / Supabase Postgres | 0 – 25 $ |
 | KV (nonce, rate limit) | Cloudflare KV / Upstash Redis | 0 – 10 $ |
-| Đối soát ngân hàng | Casso / SePay | theo bảng giá nhà cung cấp |
+| Đối soát ngân hàng | **SePay** (khuyến nghị) | Free: 50 giao dịch/tháng *đã gồm webhook + API*; Startup từ ~120.000đ/tháng |
 | OTP | Zalo ZNS (+ SMS dự phòng) | theo lượng · **giới hạn cứng 3/SĐT/ngày** |
 | Lưu trữ thẻ VIP | Cloudflare R2 | ~0 $ |
 
@@ -771,8 +777,15 @@ Chi phí biến động nguy hiểm nhất là **OTP** và **socket rảnh**. C�
 
 ## 11. Pháp lý & tuân thủ (tham khảo, không phải tư vấn pháp lý)
 
-- **NĐ 13/2023/NĐ-CP**: SĐT là dữ liệu cá nhân. Cần (a) thông báo mục đích xử lý trước khi thu thập — một dòng ngay dưới ô nhập SĐT là đủ, (b) chính sách bảo mật công khai, (c) cơ chế để khách yêu cầu xóa dữ liệu, (d) thời hạn lưu trữ rõ ràng.
+- **Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 + NĐ 356/2025/NĐ-CP** (hiệu lực 01/01/2026, **thay thế NĐ 13/2023 đã hết hiệu lực**). SĐT là dữ liệu cá nhân *cơ bản*. Nghĩa vụ tối thiểu:
+  (a) **Consent tách riêng**, không tick sẵn, không gộp vào "Tôi đồng ý điều khoản" — và phải **chứng minh được**: lưu nhật ký consent (thời điểm, IP, phiên bản nội dung đã hiển thị).
+  (b) Thông báo trước khi thu thập: loại dữ liệu, mục đích, bên thứ ba nhận (SePay/Casso, Zalo ZNS, Cloudflare), thời hạn lưu, quyền của khách. Chính sách bằng **tiếng Việt**.
+  (c) Quyền rút lại consent / yêu cầu xoá → phải có **job xoá thật**, không chỉ cờ `deleted_at`.
+  (d) **Hồ sơ đánh giá tác động (DPIA)** nộp Bộ Công an (A05) trong 60 ngày kể từ khi bắt đầu xử lý (doanh nghiệp siêu nhỏ/startup được miễn có lộ trình 5 năm).
+  (e) 🔴 **Hồ sơ chuyển dữ liệu ra nước ngoài** — lưu dữ liệu trên Cloudflare là chuyển dữ liệu xuyên biên giới, phải có hồ sơ riêng. **Điểm này ảnh hưởng trực tiếp tới lựa chọn hạ tầng ở §10 — cần quyết định sớm.**
+  (f) Mức phạt mới rất nặng: tới **3 tỷ đồng**, riêng vi phạm chuyển dữ liệu xuyên biên giới tới **5% doanh thu năm trước tại Việt Nam**.
 - **Hóa đơn**: bán hàng cho doanh nghiệp cần hóa đơn điện tử theo NĐ 123/2020. Nên chuẩn bị từ đầu (§5.2).
+- Tài liệu này tổng hợp từ nguồn công khai tại thời điểm 10/2026 — **phải nhờ luật sư rà trước khi phát hành**, nhất là (d) và (e).
 - **Điều khoản sử dụng**: nêu rõ chính sách 1 thiết bị host tại một thời điểm và quy trình hoàn tiền 7 ngày — tránh tranh chấp.
 - Nội dung game cho quán nhậu: giữ nguyên nguyên tắc hiện có — **uống rượu luôn là tùy chọn**, mọi thử thách có phiên bản không rượu (`ChallengeCard`, xem `docs/ARCHITECTURE.md`).
 

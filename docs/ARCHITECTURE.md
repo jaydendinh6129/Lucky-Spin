@@ -184,6 +184,35 @@ sequenceDiagram
 
 ---
 
+## 13. Creator: Question Bank → Game → Session
+
+```mermaid
+flowchart LR
+  subgraph CONTENT["CONTENT · js/content/store.js (IndexedDB)"]
+    Q[questions<br/>bilingual, type, difficulty,<br/>topic, imageId, timeSec?]
+    IMG[(images<br/>Blobs)]
+    Q -.-> IMG
+  end
+  subgraph CONFIG["CONFIGURATION"]
+    G[games<br/>questionIds[] · config<br/>timer · points · teams · randomisation]
+  end
+  subgraph LIVE["LIVE SESSION (unchanged)"]
+    T[quiz theme<br/>custom:gameId]
+    E[useGameEngine<br/>setup→countdown→challenge→result→finished]
+    S[session · players · teams · scores]
+  end
+  Q -->|by ID, never copied| G
+  G -->|customGames.js| T --> E --> S
+```
+
+- **One question, many games.** A game stores IDs, so Duplicate creates a new game pointing at the same questions; editing the copy never touches the original. Deleting a question removes it from every game that referenced it.
+- **One engine.** A custom game becomes a quiz theme, so `QuizGame`, the state machine, the scoreboard and the result screen are shared with the built-in themes. There is no separate "classroom engine".
+- **Timers** resolve per question: `question.timeMs ?? game.config.timerSec`. `0` means no limit (the ring is replaced by an ∞ badge and the round never auto-submits).
+- **Teams** are a player grouping, not a scoring system: a team's score is the sum of its members', computed from the same `Score` helpers (`TeamScores` in `js/components/game.js`).
+- **Persistence is local and honest**: images are real Blobs in IndexedDB on that device. Nothing is uploaded; `ContentStore` is the only module that knows this, so a server can replace it later without touching the UI.
+
+---
+
 ## 10. Symbol index (every top-level declaration, per file)
 
 <!-- INDEX:BEGIN -->

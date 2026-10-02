@@ -61,6 +61,9 @@ const normalizeQuestion = (raw, themeId, index) => {
     id: raw.id || `${themeId}-${index}`,
     theme: themeId,
     type,
+    /* per-question overrides (custom games); null = dùng cấu hình của game */
+    timeMs: raw.timeMs == null ? null : raw.timeMs,
+    points: raw.points == null ? null : raw.points,
     difficulty: DIFFICULTIES.includes(raw.difficulty) ? raw.difficulty : 'medium',
     audience: raw.adult ? 'adult' : 'all',
     tags: raw.tags || [],
@@ -187,7 +190,7 @@ const QUIZ_GENERATORS = {
 };
 
 /* ---------- registry ---------- */
-const QUIZ_THEMES = (() => {
+const buildThemesFromPacks = () => {
   const packs = (typeof window !== 'undefined' && window.JPARTY_QUIZ_PACKS) || [];
   return packs
     .filter((p) => p && p.id && p.title)
@@ -205,14 +208,31 @@ const QUIZ_THEMES = (() => {
       return { id: p.id, order: p.order ?? 100, icon: p.icon || '🧠', accent: p.accent || '#60a5fa', plan: p.plan || 'free', difficulty: p.difficulty || 'medium', title: p.title, description: p.description || { en: '', vi: '' }, questions };
     })
     .sort((a, b) => a.order - b.order);
-})();
+};
+
+/* Built-in themes are fixed at load; custom games are merged in when the
+ * content store has loaded (and again after every edit). QUIZ_THEMES is the
+ * single list everything else reads, so it is mutated in place rather than
+ * reassigned — other modules hold a reference to it. */
+const BUILTIN_QUIZ_THEMES = buildThemesFromPacks();
+const QUIZ_THEMES = [...BUILTIN_QUIZ_THEMES];
+const registerCustomQuizThemes = (customThemes) => {
+  QUIZ_THEMES.length = 0;
+  QUIZ_THEMES.push(...BUILTIN_QUIZ_THEMES, ...customThemes);
+  return QUIZ_THEMES;
+};
 const quizTheme = (id) => QUIZ_THEMES.find((th) => th.id === id) || null;
 
 /* questions of a theme that match the rule set and difficulty filter */
+const rulesetFor = (themeId, rulesetId) => {
+  const th = quizTheme(themeId);
+  if (th && th.ruleset && rulesetId === 'custom') return th.ruleset;
+  return QUIZ_RULESETS[rulesetId] || QUIZ_RULESETS.party;
+};
 const quizPool = (themeId, { ruleset = 'party', difficulty = 'all' } = {}) => {
   const th = quizTheme(themeId);
   if (!th) return [];
-  const rs = QUIZ_RULESETS[ruleset] || QUIZ_RULESETS.party;
+  const rs = rulesetFor(themeId, ruleset);
   return th.questions.filter((q) => (rs.includeAdult || q.audience !== 'adult') && (difficulty === 'all' || q.difficulty === difficulty));
 };
 const difficultyMix = (questions) => {
@@ -251,11 +271,20 @@ const spreadTags = (list) => {
 
 const dealQuiz = (themeId, opts, count) => {
   const pool = quizPool(themeId, opts);
-  const recent = readJSON(QUIZ_RECENT_KEY, {})[themeId] || [];
+  const th = quizTheme(themeId);
+  const cfg = (th && th.config) || null;
+  /* A custom game may ask for its questions in the authored order, and may
+   * turn off answer shuffling or the recently-played memory. */
+  if (cfg && cfg.randomizeQuestions === false) {
+    const picked = pool.slice(0, count);
+    return cfg.randomizeAnswers === false ? picked : picked.map(shuffleOptions);
+  }
+  const recent = cfg && cfg.noRepeat === false ? [] : readJSON(QUIZ_RECENT_KEY, {})[themeId] || [];
   const recentRank = new Map(recent.map((id, i) => [id, i])); // lower index = seen longer ago
   const fresh = shuffleArr(pool.filter((q) => !recentRank.has(q.id)));
   const stale = pool.filter((q) => recentRank.has(q.id)).sort((a, b) => recentRank.get(a.id) - recentRank.get(b.id));
-  return spreadTags([...fresh, ...stale].slice(0, count)).map(shuffleOptions);
+  const dealt = spreadTags([...fresh, ...stale].slice(0, count));
+  return cfg && cfg.randomizeAnswers === false ? dealt : dealt.map(shuffleOptions);
 };
 
 /* remember what was just played; memory size scales with the pool so small pools still rotate */

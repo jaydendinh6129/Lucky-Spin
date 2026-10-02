@@ -38,6 +38,11 @@ const GAME_REGISTRY = {
       players: [1, 12], duration: '5 min', scoring: 'points', difficulty: th.difficulty,
     }])),
   },
+  /* Custom games made in the Creator. Filled at runtime by syncCustomGames(). */
+  mygames: {
+    id: 'mygames', icon: '🎓', accent: '#a78bfa', type: 'games',
+    games: {},
+  },
   minigames: {
     id: 'minigames', icon: '🎲', accent: '#34d399', type: 'games',
     games: {
@@ -62,6 +67,24 @@ const GAME_REGISTRY = {
 };
 
 const GAME_MODES = Object.values(GAME_REGISTRY).map((m) => ({ ...m, items: Object.values(m.games) }));
+
+/* Custom games arrive async from IndexedDB. Both GAME_REGISTRY.mygames.games and
+ * the matching GAME_MODES entry are mutated in place so every consumer (sidebar,
+ * findGame, gameMeta) sees them without re-importing anything. */
+const syncCustomGames = (customThemes) => {
+  const games = {};
+  customThemes.forEach((th) => {
+    games[`quiz-${th.id}`] = {
+      id: `quiz-${th.id}`, icon: th.icon, plan: 'free', component: 'quiz',
+      quizTheme: th.id, customGameId: th.gameId,
+      players: [1, 12], duration: '5 min', scoring: 'points', difficulty: th.difficulty,
+    };
+  });
+  GAME_REGISTRY.mygames.games = games;
+  const mode = GAME_MODES.find((m) => m.id === 'mygames');
+  if (mode) mode.items = Object.values(games);
+  return games;
+};
 const findGame = (modeId, itemId) => {
   const mode = GAME_REGISTRY[modeId];
   const item = mode && mode.games[itemId];
@@ -74,6 +97,7 @@ const MODE_TEXT = {
     battle:    { title: 'Battle',            desc: 'Challenge each other' },
     king:      { title: 'King of the Table', desc: 'Winner stays' },
     quiz:      { title: 'Quiz',              desc: 'Test your knowledge' },
+    mygames:   { title: 'My Games',          desc: 'Games you created' },
     minigames: { title: 'Mini Games',        desc: 'Quick party games' },
     cards:     { title: 'Cards',             desc: 'Draw your fate' },
   },
@@ -82,6 +106,7 @@ const MODE_TEXT = {
     battle:    { title: 'Đấu tay đôi',  desc: 'Thách đấu nhau' },
     king:      { title: 'Vua bàn nhậu', desc: 'Thắng thì ở lại' },
     quiz:      { title: 'Đố vui',       desc: 'Thử kiến thức' },
+    mygames:   { title: 'Trò của tôi',  desc: 'Game bạn tự tạo' },
     minigames: { title: 'Trò chơi nhỏ', desc: 'Chơi nhanh gọn' },
     cards:     { title: 'Bốc bài',      desc: 'Rút lá số phận' },
   },
@@ -157,6 +182,12 @@ const SPINNER_HOWTO = {
 const gameMeta = (lang, mode, item) => {
   const th = mode.type === 'themes' ? THEME_TEXT[lang][item.id] : null;
   const qt = item.quizTheme ? quizTheme(item.quizTheme) : null;
+  if (qt && qt.custom) {
+    const n = qt.questions.length;
+    return { title: L(qt.title, lang), description: L(qt.description, lang) || (lang === 'vi' ? 'Game tự tạo' : 'Your custom game'),
+      howToPlay: lang === 'vi' ? `Game do bạn tạo · ${n} câu hỏi. Chơi solo, cả lớp hoặc chia đội — cùng một engine với mọi game khác của JParty.` : `Your own game · ${n} questions. Play solo, as a class or in teams — the same engine as every other JParty game.`,
+      id: item.id, icon: item.icon, plan: 'free', players: item.players, duration: item.duration, scoring: item.scoring, difficulty: item.difficulty };
+  }
   const txt = th
     ? { title: th.name, description: th.tagline, howToPlay: SPINNER_HOWTO[lang] }
     : qt ? { title: L(qt.title, lang), description: `${L(qt.description, lang)} · ${qt.questions.length} ${lang === 'vi' ? 'câu hỏi' : 'questions'}`, howToPlay: QUIZ_HOWTO[lang] }

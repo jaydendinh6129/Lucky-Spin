@@ -173,6 +173,30 @@ function TimerRing({ ms, total, size = 96, color = '#fff', urgent = 3000 }) {
   );
 }
 
+const TEAM_NAMES = ['A', 'B', 'C', 'D'];
+const TEAM_COLORS = ['#f87171', '#60a5fa', '#4ade80', '#fbbf24'];
+
+/* Live team standings — team score is just the sum of its members' scores,
+ * so teams need no second scoring system. */
+function TeamScores({ t, teams, big }) {
+  if (!teams || !teams.length) return null;
+  const top = teams[0] ? teams[0].score : 0;
+  return (
+    <div className={`space-y-1.5 ${big ? 'mt-4' : ''}`}>
+      {big && <div className="text-[11px] uppercase tracking-[0.25em] text-white/55 text-center">{t.teamRanking}</div>}
+      {teams.map((tm, i) => (
+        <div key={tm.index} className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 border" style={{ background: `${tm.color}1f`, borderColor: `${tm.color}66` }}>
+          <span className="w-6 text-center font-black text-white/60">{i + 1}</span>
+          <span className="w-7 h-7 rounded-lg grid place-items-center font-black text-slate-900 shrink-0" style={{ background: tm.color }}>{tm.name}</span>
+          <span className="flex-1 min-w-0 text-sm truncate">{tm.members.map((p) => p.avatar).join(' ')} <span className="text-white/55">{tm.members.length}</span></span>
+          <span className={`font-black tabular-nums ${big ? 'text-xl' : ''}`}>{tm.score}</span>
+          {top > 0 && <span className="hidden sm:block w-16 h-1.5 rounded-full bg-white/10 overflow-hidden"><span className="block h-full rounded-full" style={{ width: `${(tm.score / top) * 100}%`, background: tm.color }} /></span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ScoreBoard({ t, players, highlight = [], metric = 'score', metricLabel, compact }) {
   const list = metric === 'time'
     ? [...players].sort((a, b) => (a.bestMs ?? Infinity) - (b.bestMs ?? Infinity))
@@ -261,7 +285,7 @@ function GameShell({ t, modeTitle, meta, round, totalRounds, status, onExit, ext
 }
 
 /* Consistent end-of-game screen */
-function GameResult({ t, title, winners, winnerLabel, players, stats = [], metric, metricLabel, onPlayAgain, onChangeGame, onBackToParty, celebrate }) {
+function GameResult({ t, title, winners, winnerLabel, players, stats = [], metric, metricLabel, extra, onPlayAgain, onChangeGame, onBackToParty, celebrate }) {
   useEffect(() => { celebrate && celebrate(); }, []);
   const list = winners || [];
   return (
@@ -285,6 +309,7 @@ function GameResult({ t, title, winners, winnerLabel, players, stats = [], metri
           ))}
         </div>
       )}
+      {extra}
       {players && players.length > 1 && (
         <div className="mt-4 text-left"><ScoreBoard t={t} players={players} highlight={list.map((p) => p.id)} metric={metric} metricLabel={metricLabel} compact /></div>
       )}
