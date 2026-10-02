@@ -347,20 +347,12 @@ function App() {
   }
 
   return (
-    <div className="min-screen flex flex-col relative overflow-x-hidden">
+    <div className="min-screen flex flex-col lg:flex-row lg:items-start relative overflow-x-hidden">
       <div className="blob" style={{ background: brand ? venue.primary : theme.accent, width: '55vmax', height: '55vmax', top: '-20vmax', left: '-15vmax' }} aria-hidden="true" />
       <div className="blob b2" style={{ background: brand ? venue.secondary : theme.palette[2], width: '45vmax', height: '45vmax', bottom: '-18vmax', right: '-12vmax' }} aria-hidden="true" />
 
-      <Header
-        t={t} theme={theme} themeText={themeText} subtitle={subtitle} brand={brand}
-        onMenu={() => setMenuOpen(true)} soundOn={soundOn} onToggleSound={toggleSound}
-        onShareWheel={shareWheel} party={party} onToggleParty={toggleParty}
-      />
-
-      <main className={`relative z-10 flex-1 flex flex-col items-center px-4 gap-5 max-w-3xl w-full mx-auto ${party && !inGame ? 'justify-center py-4' : 'py-6'}`}>
-        {main}
-      </main>
-
+      {/* On wide screens the panel is a frozen left column (rendered first so it sits on the left);
+          the header + content column takes the rest. On phones the panel is a drawer. */}
       <SideMenu
         open={menuOpen} onClose={() => setMenuOpen(false)} t={t} lang={lang} setLang={setLang}
         openModes={openModes} onToggleMode={toggleMode} activeGame={screen === 'play' ? activeGame : { mode: ['editor', 'bank', 'mygames'].includes(screen) ? 'quiz' : screen, id: '' }} onPickGame={pickGame}
@@ -372,6 +364,17 @@ function App() {
         history={history} currentGame={activeGame} onClearHistory={clearHistoryFor}
         lists={lists} onSaveList={saveList} onLoadList={loadList} onDeleteList={deleteList} canSave={items.length > 0}
       />
+
+      <div className="flex-1 min-w-0 flex flex-col min-screen">
+        <Header
+          t={t} theme={theme} themeText={themeText} subtitle={subtitle} brand={brand}
+          onMenu={() => setMenuOpen(true)} soundOn={soundOn} onToggleSound={toggleSound}
+          onShareWheel={shareWheel} party={party} onToggleParty={toggleParty}
+        />
+        <main className={`relative z-10 flex-1 flex flex-col items-center px-4 gap-5 max-w-3xl w-full mx-auto ${party && !inGame ? 'justify-center py-4' : 'py-6'}`}>
+          {main}
+        </main>
+      </div>
 
       {upgrade && <UpgradeModal t={t} plan={upgrade.plan} meta={upgrade.meta} onUpgrade={doUpgrade} onClose={() => setUpgrade(null)} />}
       {bigScreen && typeof BigScreen !== 'undefined' && <BigScreen t={t} venue={brand} stage={stage} session={session} room={host.room} onClose={() => setBigScreen(false)} />}

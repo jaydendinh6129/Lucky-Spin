@@ -28,7 +28,7 @@ Physics wheel with flick-to-spin, per-theme skins (wooden *bàn nhậu*, casino 
 | --- | --- |
 | ⚔️ Battle | Quick Battle (Bo1/3/5) · Best of 3 · Streak Battle · Team Battle · Elimination Battle |
 | 👑 King of the Table | Classic King · King Challenge · Last King Standing |
-| 🧠 Quiz | **Theme-based**: Animals · Flags Around the World · Representative Animals · Mix — 794 bilingual questions, multiple-choice and true/false, real flag images, Party (15 s + speed bonus) or Classroom (25 s, child-safe) rules, difficulty filter, no repeats within a game or across recent games |
+| 🧠 Quiz | **Theme-based**: Animals · Flags Around the World · Representative Animals · Mix — 794 bilingual questions, multiple-choice and true/false, real flag images, 15 s per question with a speed bonus, difficulty filter, no repeats within a game or across recent games |
 | 🎲 Mini Games | Rock Paper Scissors · 5 Second Rule · Don't Laugh · Reaction Test · Memory · Word Challenge |
 | 🃏 Cards | Challenge · Truth · Dare · Wild (re-spin, target, shield, switch, double) · Chaos (everyone, swap, reverse, double round, random target) — effects are real state changes |
 
@@ -45,7 +45,10 @@ Build your own quiz for a party, a class or a revision session. Custom games liv
 - **Live classroom** — when phones are connected to the room, the quiz switches from pass-the-phone to everyone-answers-at-once: the host screen is the projector (question, options, a live "3 / 18 answered" bar), each student taps an answer on their own device, the round closes as soon as everybody has answered, and all students are scored together with their own speed bonus
 
 ### ⚙️ Contextual settings
-The Settings panel shows what the selected mode actually uses: elimination and spin duration for the Spinner, rules / difficulty / question count for the Quiz, a link to the editor for a custom game, and nothing but the global options elsewhere.
+The Settings panel shows what the selected mode actually uses: elimination and spin duration for the Spinner, difficulty / question count for the Quiz, a link to the editor for a custom game, and nothing but the global options elsewhere.
+
+### 🖥️ Frozen side panel on wide screens
+From 1024px up the side panel is a fixed left column that never slides away — game modes, party and settings stay one glance away on a laptop, tablet in landscape or projector setup. On phones it remains a slide-in drawer.
 
 ### 🎉 Party session
 Shared player roster (add / rename / remove / shuffle), per-game selection and teams, game history with "most wins / longest streak / most played / most points" summary. Everything is stored locally.

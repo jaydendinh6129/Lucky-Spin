@@ -280,9 +280,6 @@ function QuizGame({ ctx }) {
         <div className="space-y-3 border-t border-white/10 pt-4">
           {!custom && (
             <>
-              <OptionPills label={t.quizMode} value={prefs.ruleset} onChange={(v) => setPrefs({ ruleset: v })}
-                options={Object.values(QUIZ_RULESETS).map((r) => ({ value: r.id, label: `${r.icon} ${t.rulesets[r.id].name}` }))} />
-              <div className="text-[11px] text-white/55 -mt-1">{t.rulesets[prefs.ruleset].desc}</div>
               <OptionPills label={t.difficulty} value={prefs.difficulty} onChange={(v) => setPrefs({ difficulty: v })}
                 options={['all', ...DIFFICULTIES].map((d) => ({ value: d, label: d === 'all' ? t.allLevels : t.difficultyLabels[d] }))} />
               <OptionPills label={t.questions} value={prefs.count} onChange={(v) => setPrefs({ count: v })}

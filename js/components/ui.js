@@ -121,7 +121,7 @@ function Header({ t, theme, themeText, subtitle, brand, onMenu, soundOn, onToggl
       className="sticky top-0 z-20 px-3 sm:px-4 pb-3 flex items-center gap-2 sm:gap-3 backdrop-blur-md bg-black/15 border-b border-white/10"
       style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
     >
-      <IconButton onClick={onMenu} label={t.openMenu}><Icon.Menu /></IconButton>
+      <span className="lg:hidden"><IconButton onClick={onMenu} label={t.openMenu}><Icon.Menu /></IconButton></span>
       <div className="flex-1 flex items-center gap-2 min-w-0">
         {brand && brand.logo ? <img src={brand.logo} alt="" className="w-9 h-9 rounded-xl object-cover border border-white/20 shrink-0" /> : <div className="text-2xl" aria-hidden="true">{theme.icon}</div>}
         <div className="min-w-0">

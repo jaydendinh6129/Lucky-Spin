@@ -20,6 +20,20 @@ const REDUCED_MOTION = window.matchMedia?.('(prefers-reduced-motion: reduce)').m
 
 const mod = (a, n) => ((a % n) + n) % n;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+/* true while the CSS media query matches; re-renders on change */
+const useMediaQuery = (query) => {
+  const get = () => typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(query).matches : false;
+  const [matches, setMatches] = useState(get);
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia(query);
+    const on = () => setMatches(mq.matches);
+    on();
+    mq.addEventListener ? mq.addEventListener('change', on) : mq.addListener(on);
+    return () => (mq.removeEventListener ? mq.removeEventListener('change', on) : mq.removeListener(on));
+  }, [query]);
+  return matches;
+};
 const rand = () => {
   if (window.crypto?.getRandomValues) {
     const a = new Uint32Array(1);

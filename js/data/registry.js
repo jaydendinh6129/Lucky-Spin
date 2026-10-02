@@ -109,8 +109,8 @@ const MODE_TEXT = {
 
 /* title / description / howToPlay for every game. Themes reuse THEME_TEXT plus the spinner how-to. */
 const QUIZ_HOWTO = {
-  en: 'Pick a theme, Party or Classroom rules and a difficulty. Pass the phone around (or play as teams) — each question goes to the next player. Party: 15 s and a speed bonus up to +50. Classroom: 25 s, no speed bonus, child-friendly questions only.',
-  vi: 'Chọn chủ đề, luật Tiệc hoặc Lớp học và độ khó. Chuyền điện thoại (hoặc chơi theo đội) — mỗi câu tới lượt người kế tiếp. Tiệc: 15 giây, thưởng tốc độ tới +50. Lớp học: 25 giây, không thưởng tốc độ, chỉ câu hỏi phù hợp trẻ em.',
+  en: 'Pick a theme and a difficulty. Pass the phone around (or play as teams) — each question goes to the next player. 15 s per question, +100 for a correct answer and a speed bonus up to +50. With phones connected, everyone answers at once on their own device.',
+  vi: 'Chọn chủ đề và độ khó. Chuyền điện thoại (hoặc chơi theo đội) — mỗi câu tới lượt người kế tiếp. 15 giây mỗi câu, +100 khi đúng và thưởng tốc độ tới +50. Khi có điện thoại kết nối, cả lớp cùng trả lời trên máy của mình.',
 };
 const GAME_META_TEXT = {
   en: {

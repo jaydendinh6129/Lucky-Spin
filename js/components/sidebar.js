@@ -187,7 +187,10 @@ function SideMenu({
 }) {
   const [name, setName] = useState('');
   const closeRef = useRef(null);
-  useEffect(() => { if (open) setTimeout(() => closeRef.current && closeRef.current.focus(), 50); }, [open]);
+  /* ≥1024px the panel is a frozen column, always visible; below that it is a slide-in drawer */
+  const docked = useMediaQuery('(min-width: 1024px)');
+  const shown = open || docked;
+  useEffect(() => { if (open && !docked) setTimeout(() => closeRef.current && closeRef.current.focus(), 50); }, [open, docked]);
 
   /* History follows the selection: spins of the current theme, or rounds of the current game */
   const hist = useMemo(() => {
@@ -217,12 +220,12 @@ function SideMenu({
 
   return (
     <>
-      <div className={`fixed inset-0 z-30 menu-backdrop transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} aria-hidden="true" />
+      <div className={`fixed inset-0 z-30 menu-backdrop transition-opacity duration-300 lg:hidden ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} aria-hidden="true" />
       <aside
-        className={`fixed top-0 left-0 z-40 w-[88vw] max-w-sm bg-slate-950/95 text-white shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed top-0 left-0 z-40 w-[88vw] max-w-sm bg-slate-950/95 text-white shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${open ? 'translate-x-0' : '-translate-x-full'} lg:sticky lg:translate-x-0 lg:w-80 lg:shrink-0 lg:shadow-none lg:border-r lg:border-white/10 lg:transition-none`}
         style={{ height: '100dvh', maxHeight: '100dvh' }}
-        aria-hidden={!open}
-        inert={open ? undefined : ''}
+        aria-hidden={!shown}
+        inert={shown ? undefined : ''}
         role="dialog"
         aria-label={t.panelTitle}
       >
@@ -231,7 +234,7 @@ function SideMenu({
             {venue && venue.logo ? <img src={venue.logo} alt="" className="w-7 h-7 rounded-lg object-cover border border-white/20" /> : <span aria-hidden="true">🎉</span>}
             <span className="truncate">{venue ? venue.name : t.panelTitle}</span>
           </h2>
-          <button ref={closeRef} onClick={onClose} aria-label={t.close} className="w-10 h-10 rounded-full hover:bg-white/10 grid place-items-center btn-press shrink-0"><Icon.X /></button>
+          <button ref={closeRef} onClick={onClose} aria-label={t.close} className="w-10 h-10 rounded-full hover:bg-white/10 grid place-items-center btn-press shrink-0 lg:hidden"><Icon.X /></button>
         </header>
 
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain sb-thin p-4 space-y-7">
@@ -299,16 +302,6 @@ function SideMenu({
               {modeId === 'quiz' && quizPrefs && !activeCustomId && (
                 <div className="space-y-3 rounded-2xl bg-black/15 border border-white/10 p-3">
                   <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">🧠 {MODE_TEXT[lang].quiz.title}</div>
-                  <div>
-                    <div className="font-semibold mb-1.5 text-sm">{t.quizMode}</div>
-                    <div className="grid grid-cols-2 gap-1 p-1 rounded-full bg-black/30 border border-white/10">
-                      {Object.values(QUIZ_RULESETS).map((r) => (
-                        <button key={r.id} onClick={() => setQuizPrefs({ ruleset: r.id })} aria-pressed={quizPrefs.ruleset === r.id}
-                          className={`py-1.5 rounded-full text-xs font-bold btn-press ${quizPrefs.ruleset === r.id ? 'bg-white text-slate-900' : 'text-white/70'}`}>{r.icon} {t.rulesets[r.id].name}</button>
-                      ))}
-                    </div>
-                    <div className="text-[11px] text-white/55 mt-1.5">{t.rulesets[quizPrefs.ruleset] ? t.rulesets[quizPrefs.ruleset].desc : ''}</div>
-                  </div>
                   <div>
                     <div className="font-semibold mb-1.5 text-sm">{t.difficulty}</div>
                     <div className="grid grid-cols-4 gap-1 p-1 rounded-full bg-black/30 border border-white/10">

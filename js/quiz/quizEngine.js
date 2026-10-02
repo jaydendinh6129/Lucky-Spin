@@ -37,7 +37,9 @@ const QUESTION_TYPES = {
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const TF_OPTIONS = [{ en: 'True', vi: 'Đúng' }, { en: 'False', vi: 'Sai' }];
 
-/* ---------- rule sets: one engine, configurable rules ---------- */
+/* ---------- rule sets: one engine, configurable rules ----------
+ * Built-in themes always play `party`; `classroom` is kept as a preset that
+ * custom games / future modes can point at — it is no longer a user switch. */
 const QUIZ_RULESETS = {
   party:     { id: 'party', icon: '🎉', time: 15000, points: 100, speedBonus: 50, includeAdult: true, explanation: 'when-present' },
   classroom: { id: 'classroom', icon: '🏫', time: 25000, points: 100, speedBonus: 0, includeAdult: false, explanation: 'when-present' },
@@ -246,7 +248,8 @@ const QUIZ_RECENT_KEY = 'jparty_quiz_recent';
 const QUIZ_PREFS_KEY = 'jparty_quiz_prefs';
 const readJSON = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (e) { return fallback; } };
 const writeJSON = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} };
-const loadQuizPrefs = () => ({ ruleset: 'party', difficulty: 'all', count: 10, ...readJSON(QUIZ_PREFS_KEY, {}) });
+/* Built-in themes always use `party`; a stored `ruleset` from the old Party/Classroom switch is ignored */
+const loadQuizPrefs = () => ({ difficulty: 'all', count: 10, ...readJSON(QUIZ_PREFS_KEY, {}), ruleset: 'party' });
 const saveQuizPrefs = (prefs) => writeJSON(QUIZ_PREFS_KEY, prefs);
 
 /* shuffle answer positions at deal time (true/false keeps its order) */
