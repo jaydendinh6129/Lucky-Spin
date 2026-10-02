@@ -33,7 +33,7 @@ function App() {
   const [eliminated, setEliminated] = useState(Array.isArray(stored.eliminated) ? stored.eliminated : []);
   const [history, setHistory]     = useState(Array.isArray(stored.history) ? stored.history.slice(0, MAX_HISTORY) : []);
   const [lists, setLists]         = useState(Array.isArray(stored.lists) ? stored.lists : []);
-  const [openModes, setOpenModes] = useState(Array.isArray(stored.openModes) ? stored.openModes : ['spinner']);
+  const [openModes, setOpenModes] = useState([]); // session-only: the accordion starts fully collapsed every time the sidebar opens
   const [activeGame, setActiveGame] = useState(() =>
     stored.activeGame && findGame(stored.activeGame.mode, stored.activeGame.id) ? stored.activeGame : { mode: 'spinner', id: themeKey }
   );
@@ -71,12 +71,13 @@ function App() {
 
   /* ---------- Effects ---------- */
   useEffect(() => {
-    saveState({ lang, themeKey, soundOn, haptics, eliminate, duration, items, eliminated, history, lists, openModes, activeGame, session, subscription: sub, venue, hostRoom: host.room ? host.room.code : null });
-  }, [lang, themeKey, soundOn, haptics, eliminate, duration, items, eliminated, history, lists, openModes, activeGame, session, sub, venue, host.room]);
+    saveState({ lang, themeKey, soundOn, haptics, eliminate, duration, items, eliminated, history, lists, activeGame, session, subscription: sub, venue, hostRoom: host.room ? host.room.code : null });
+  }, [lang, themeKey, soundOn, haptics, eliminate, duration, items, eliminated, history, lists, activeGame, session, sub, venue, host.room]);
 
-  /* The game area behind the sidebar must not scroll while it is open */
+  /* The game area behind the sidebar must not scroll while it is open; the accordion resets to collapsed */
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
+    if (menuOpen) setOpenModes([]);
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
 
@@ -217,6 +218,12 @@ function App() {
     goPlay();
     showToast(t.loaded(l.name));
   };
+  /* History in the sidebar follows the selected theme / game; clearing removes only that slice */
+  const clearHistoryFor = (g) => {
+    sfx('click');
+    if (g.mode === 'spinner') setHistory((prev) => prev.filter((h) => h.theme !== g.id));
+    else setSession((s) => ({ ...s, history: s.history.filter((h) => h.gameId !== g.id) }));
+  };
   const deleteList = (id) => {
     const prev = lists;
     const l = lists.find((x) => x.id === id);
@@ -329,7 +336,7 @@ function App() {
         session={session} onOpenParty={openParty}
         soundOn={soundOn} setSoundOn={setSoundOn} haptics={haptics} setHaptics={setHaptics}
         eliminate={eliminate} setEliminate={setEliminate} duration={duration} setDuration={setDuration}
-        history={history} onClearHistory={() => setHistory([])}
+        history={history} currentGame={activeGame} onClearHistory={clearHistoryFor}
         lists={lists} onSaveList={saveList} onLoadList={loadList} onDeleteList={deleteList} canSave={items.length > 0}
       />
 

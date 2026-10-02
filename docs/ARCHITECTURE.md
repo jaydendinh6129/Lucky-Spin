@@ -36,7 +36,7 @@ All persistent state lives in one `localStorage` key (`party_spinner_v1`, see `s
 | --- | --- | --- |
 | `lang, themeKey, soundOn, haptics, eliminate, duration` | App | settings |
 | `items, eliminated, history, lists` | App → `SpinnerView` | spinner list, removed items, spin history, saved wheels |
-| `openModes, activeGame` | App | sidebar accordion + what the main area shows |
+| `activeGame` | App | what the main area shows (`openModes` is session-only: the accordion opens fully collapsed every time the sidebar opens) |
 | `session` | App | `{ players, history, stats }` — the party (see §5) |
 | `subscription` | App | `{ plan, status, expiresAt }` (see §6) |
 | `venue` | App | branding + venue mode settings (see §7) |
@@ -245,11 +245,11 @@ Foundation module for the no-build React party-spinner app: destructures React h
 
 ### `js/data/themes.js`
 
-Pure data file: defines the 9 wheel themes (visual config + monetisation flags), their en/vi display text, per-theme sample wheel items, and the Truth-or-Dare prompt pools. No functions; everything is a plain object literal consumed by other files as globals.
+Pure data file: defines the 6 wheel themes (visual config + monetisation flags), their en/vi display text, per-theme sample wheel items, and the Truth-or-Dare prompt pools. No functions; everything is a plain object literal consumed by other files as globals.
 
 | Symbol | Kind | Signature | What it does |
 | --- | --- | --- | --- |
-| `THEMES` | const | `{ drinking, lucky, truth_or_dare, dating, office, hardcore, friends, college, sports } → each { key, icon, free, plan?, skin?, reveal?, palette[6], bgGradient, themeColor, accent, pointerColor, btnClass, resultEmoji, effect, floaters[], confettiColors[] }` | Registry of wheel themes keyed by id; drinking/lucky/truth_or_dare are free, dating/office/hardcore are paid, friends/college/sports are plan:'pro' with a skin ('gold'\|'wood'\|'steel') and a reveal alias pointing at another theme key; effect is one of shake\|confetti\|glow\|hearts\|clean\|flash. |
+| `THEMES` | const | `{ drinking, lucky, truth_or_dare, dating, office, hardcore } → each { key, icon, free, plan?, skin?, reveal?, palette[6], bgGradient, themeColor, accent, pointerColor, btnClass, resultEmoji, effect, floaters[], confettiColors[] }` | Registry of wheel themes keyed by id; drinking/lucky/truth_or_dare are free, dating/office/hardcore are PRO; a theme may set `skin`/`reveal` to reuse another theme's wheel skin and reveal; effect is one of shake\|confetti\|glow\|hearts\|clean\|flash. |
 | `THEME_TEXT` | const | `{ en: { <themeKey>: { name, tagline, kicker } }, vi: { ... } }` | Localised display strings (name, tagline, result kicker) for every THEMES key, in English and Vietnamese. |
 | `SAMPLE_ITEMS` | const | `{ en: { <themeKey>: string[] }, vi: { <themeKey>: string[] } }` | Default wheel segment labels per theme and language (6-10 items; lucky is '1'..'10', office is sample people names). |
 | `TD_PROMPTS` | const | `{ en: { truth: string[14], dare: string[14] }, vi: { truth: string[14], dare: string[14] } }` | Truth-or-Dare prompt pools (14 truths + 14 dares) per language, used when a truth_or_dare spin resolves. |

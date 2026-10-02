@@ -181,18 +181,27 @@ function SideMenu({
   open, onClose, t, lang, setLang, openModes, onToggleMode, activeGame, onPickGame,
   sub, onOpenPricing, onDevSetPlan, venue, onOpenVenue, session, onOpenParty,
   soundOn, setSoundOn, haptics, setHaptics, eliminate, setEliminate, duration, setDuration,
-  history, onClearHistory, lists, onSaveList, onLoadList, onDeleteList, canSave,
+  history, currentGame, onClearHistory, lists, onSaveList, onLoadList, onDeleteList, canSave,
 }) {
   const [name, setName] = useState('');
   const closeRef = useRef(null);
   useEffect(() => { if (open) setTimeout(() => closeRef.current && closeRef.current.focus(), 50); }, [open]);
 
-  const stats = useMemo(() => {
+  /* History follows the selection: spins of the current theme, or rounds of the current game */
+  const hist = useMemo(() => {
+    const isSpin = currentGame.mode === 'spinner';
+    const def = isSpin ? null : findGame(currentGame.mode, currentGame.id);
+    const th = isSpin ? THEMES[currentGame.id] : null;
+    const label = isSpin
+      ? `${th ? th.icon : '🎯'} ${THEME_TEXT[lang][currentGame.id] ? THEME_TEXT[lang][currentGame.id].name : ''}`
+      : def ? `${def.item.icon} ${gameMeta(lang, def.mode, def.item).title}` : '';
+    const spins = isSpin ? history.filter((h) => h.theme === currentGame.id) : [];
+    const games = isSpin ? [] : session.history.filter((h) => h.gameId === currentGame.id);
     const counts = {};
-    history.forEach((h) => { counts[h.winner] = (counts[h.winner] || 0) + 1; });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  }, [history]);
-  const maxCount = stats.length ? stats[0][1] : 1;
+    (isSpin ? spins.map((h) => h.winner) : games.flatMap((h) => h.winnerNames || [])).forEach((n) => { counts[n] = (counts[n] || 0) + 1; });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    return { isSpin, label, spins, games, top, maxCount: top.length ? top[0][1] : 1, count: isSpin ? spins.length : games.length, icon: def ? def.item.icon : th ? th.icon : '🎯' };
+  }, [history, session.history, currentGame, lang]);
   const save = () => {
     if (!name.trim() || !canSave) return;
     onSaveList(name.trim().slice(0, 40));
@@ -309,32 +318,44 @@ function SideMenu({
             </div>
           </Section>
 
-          {/* Spin history & stats */}
-          <Section title={t.history} right={history.length > 0 && <button onClick={onClearHistory} className="text-xs text-white/60 hover:text-white">{t.clearHistory}</button>}>
+          {/* History of the selected theme (spins) or game (rounds) */}
+          <Section title={`${t.history} · ${hist.label}`} right={hist.count > 0 && <button onClick={() => onClearHistory(currentGame)} className="text-xs text-white/60 hover:text-white">{t.clearHistory}</button>}>
             <div className="bg-white/5 rounded-2xl p-3 border border-white/10 space-y-3">
-              {history.length === 0 ? (
-                <div className="text-xs text-white/50 text-center py-2">{t.noHistory}</div>
+              {hist.count === 0 ? (
+                <div className="text-xs text-white/50 text-center py-2">{t.noHistoryHere}</div>
               ) : (
                 <>
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] text-white/55 mb-2"><span>{t.topPicks}</span><span>{t.totalSpins(history.length)}</span></div>
-                    <div className="space-y-1.5">
-                      {stats.map(([label, count]) => (
-                        <div key={label} className="flex items-center gap-2 text-xs">
-                          <span className="w-24 truncate font-medium" title={label}>{label}</span>
-                          <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-yellow-300 to-pink-400" style={{ width: `${(count / maxCount) * 100}%` }} /></div>
-                          <span className="w-5 text-right tabular-nums text-white/70">{count}</span>
-                        </div>
-                      ))}
+                  {hist.top.length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-white/55 mb-2">
+                        <span>{hist.isSpin ? t.topPicks : t.mostWins}</span>
+                        <span>{hist.isSpin ? t.totalSpins(hist.count) : `${hist.count} ${hist.count === 1 ? t.game1 : t.games2}`}</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {hist.top.map(([label, count]) => (
+                          <div key={label} className="flex items-center gap-2 text-xs">
+                            <span className="w-24 truncate font-medium" title={label}>{label}</span>
+                            <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-yellow-300 to-pink-400" style={{ width: `${(count / hist.maxCount) * 100}%` }} /></div>
+                            <span className="w-5 text-right tabular-nums text-white/70">{count}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <ul className="space-y-1.5 border-t border-white/10 pt-3 max-h-60 overflow-y-auto sb-thin">
-                    {history.slice(0, 20).map((h, idx) => (
-                      <li key={idx} className="flex items-center justify-between text-sm gap-2">
-                        <span className="flex items-center gap-2 min-w-0"><span aria-hidden="true">{THEMES[h.theme] ? THEMES[h.theme].icon : '🎯'}</span><span className="font-medium truncate">{h.winner}</span></span>
-                        <span className="text-[10px] text-white/50 shrink-0">{h.ts ? fmtAgo(h.ts, lang) : h.when}</span>
-                      </li>
-                    ))}
+                  )}
+                  <ul className={`space-y-1.5 pt-3 max-h-60 overflow-y-auto sb-thin ${hist.top.length ? 'border-t border-white/10' : ''}`}>
+                    {hist.isSpin
+                      ? hist.spins.slice(0, 20).map((h, idx) => (
+                        <li key={idx} className="flex items-center justify-between text-sm gap-2">
+                          <span className="flex items-center gap-2 min-w-0"><span aria-hidden="true">{hist.icon}</span><span className="font-medium truncate">{h.winner}</span></span>
+                          <span className="text-[10px] text-white/50 shrink-0">{h.ts ? fmtAgo(h.ts, lang) : h.when}</span>
+                        </li>
+                      ))
+                      : hist.games.slice(0, 20).map((h) => (
+                        <li key={h.id} className="flex items-center justify-between text-sm gap-2">
+                          <span className="flex items-center gap-2 min-w-0"><span aria-hidden="true">{hist.icon}</span><span className="font-medium truncate">{h.summary || (h.winnerNames || []).join(', ')}</span></span>
+                          <span className="text-[10px] text-white/50 shrink-0">{fmtAgo(h.ts, lang)}</span>
+                        </li>
+                      ))}
                   </ul>
                 </>
               )}

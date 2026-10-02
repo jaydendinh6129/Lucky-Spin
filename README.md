@@ -37,7 +37,7 @@ Shared player roster (add / rename / remove / shuffle), per-game selection and t
 
 ### 💎 FREE · PRO · MAX
 - **FREE** — Spinner with 3 themes, Quick Battle, General Quiz, Rock Paper Scissors, 5 Second Rule, Don't Laugh.
-- **PRO** — ≈80 % of the library: 6 more themes (Dating, Office, Hardcore, Friends, College, Sports), all Battle and King modes, all quizzes, advanced mini games, all card decks.
+- **PRO** — ≈80 % of the library: 3 more themes (Dating, Office, Hardcore), all Battle and King modes, all quizzes, advanced mini games, all card decks.
 - **MAX** — everything in PRO + venue branding (name, tagline, logo upload with validation, brand colours as accents), Venue mode (table, QR join, host controls), real-time multiplayer, Big Screen mode, venue stats.
 
 Locked items stay visible with PRO / 👑 MAX badges; tapping one opens a compact upgrade modal, never during gameplay. Entitlements are centralised in `js/subscription/plans.js` (`FEATURES`, `Entitlements.hasFeature`, `canPlay`). Payments are not wired yet — production shows an honest "coming soon" toast.

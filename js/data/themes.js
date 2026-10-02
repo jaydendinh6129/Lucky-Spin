@@ -69,39 +69,6 @@ const THEMES = {
     floaters: ['🎆', '⚡', '🔥', '💥'],
     confettiColors: ['#FF00FF', '#00FFFF', '#FFFF00'],
   },
-  friends: {
-    key: 'friends', icon: '👫', free: false, plan: 'pro', skin: 'gold', reveal: 'lucky',
-    palette: ['#2DD4BF', '#FB923C', '#A78BFA', '#F472B6', '#FACC15', '#60A5FA'],
-    bgGradient: 'linear-gradient(135deg, #0f766e 0%, #6d28d9 55%, #ea580c 100%)',
-    themeColor: '#0f766e',
-    accent: '#FACC15', pointerColor: '#FACC15',
-    btnClass: 'bg-gradient-to-r from-teal-500 to-violet-600 hover:from-teal-600 hover:to-violet-700 text-white',
-    resultEmoji: '🫶', effect: 'confetti',
-    floaters: ['🫶', '✨', '🎉', '💛'],
-    confettiColors: ['#2DD4BF', '#FB923C', '#FACC15', '#A78BFA'],
-  },
-  college: {
-    key: 'college', icon: '🎓', free: false, plan: 'pro', skin: 'wood', reveal: 'drinking',
-    palette: ['#F59E0B', '#EF4444', '#3B82F6', '#10B981', '#8B5CF6', '#EC4899'],
-    bgGradient: 'linear-gradient(135deg, #1e3a8a 0%, #7c2d12 60%, #b45309 100%)',
-    themeColor: '#1e3a8a',
-    accent: '#FBBF24', pointerColor: '#FBBF24',
-    btnClass: 'bg-gradient-to-r from-blue-600 to-amber-500 hover:from-blue-700 hover:to-amber-600 text-white',
-    resultEmoji: '🎓', effect: 'confetti',
-    floaters: ['🎓', '📚', '🎉', '🍕'],
-    confettiColors: ['#F59E0B', '#3B82F6', '#EF4444'],
-  },
-  sports: {
-    key: 'sports', icon: '⚽', free: false, plan: 'pro', skin: 'steel', reveal: 'hardcore',
-    palette: ['#22C55E', '#EAB308', '#3B82F6', '#EF4444', '#F97316', '#14B8A6'],
-    bgGradient: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #0f172a 100%)',
-    themeColor: '#14532d',
-    accent: '#FDE047', pointerColor: '#FDE047',
-    btnClass: 'bg-gradient-to-r from-green-600 to-yellow-400 hover:from-green-700 hover:to-yellow-500 text-slate-900',
-    resultEmoji: '🏆', effect: 'confetti',
-    floaters: ['⚽', '🏀', '🏆', '🎉'],
-    confettiColors: ['#22C55E', '#EAB308', '#3B82F6'],
-  },
 };
 
 /* ============================================================
@@ -116,9 +83,6 @@ const THEME_TEXT = {
     dating:        { name: 'Dating',         tagline: 'Catch the feeling',  kicker: 'Destiny has decided 💘' },
     office:        { name: 'Office',         tagline: 'Pick the PIC',       kicker: 'Congrats, you’re the PIC 📌' },
     hardcore:      { name: 'Hardcore Party', tagline: 'No survivors',       kicker: 'NO MERCY — YOU GOT IT 🎆' },
-    friends:       { name: 'Friends',        tagline: 'Squad goals',        kicker: 'The squad has spoken 🫶' },
-    college:       { name: 'College',        tagline: 'Dorm room legends',  kicker: 'Class dismissed 🎓' },
-    sports:        { name: 'Sports',         tagline: 'Game on',            kicker: 'And the crowd goes wild 🏆' },
   },
   vi: {
     drinking:      { name: 'Nhậu',           tagline: 'Dô! Trăm phần trăm!', kicker: 'Cạn ly đi chờ chi! 🍻' },
@@ -127,9 +91,6 @@ const THEME_TEXT = {
     dating:        { name: 'Hẹn hò',         tagline: 'Bắt trọn cảm xúc',    kicker: 'Định mệnh đã chọn 💘' },
     office:        { name: 'Công sở',        tagline: 'Chọn người phụ trách', kicker: 'Chúc mừng, bạn là PIC 📌' },
     hardcore:      { name: 'Quẩy tới bến',   tagline: 'Không ai sống sót',   kicker: 'KHÔNG KHOAN NHƯỢNG 🎆' },
-    friends:       { name: 'Bạn bè',         tagline: 'Hội bạn thân',        kicker: 'Hội bạn đã chốt 🫶' },
-    college:       { name: 'Sinh viên',      tagline: 'Huyền thoại ký túc xá', kicker: 'Hết giờ học rồi 🎓' },
-    sports:        { name: 'Thể thao',       tagline: 'Vào trận thôi',       kicker: 'Khán đài nổ tung 🏆' },
   },
 };
 
@@ -141,9 +102,6 @@ const SAMPLE_ITEMS = {
     dating: ['Hold hands', 'Compliment them', 'Eye contact 30s', 'Share a secret', 'Slow dance', 'Take a selfie'],
     office: ['Alice', 'Bob', 'Charlie', 'Diana', 'Evan', 'Fiona'],
     hardcore: ['Body shot', 'Dance break', 'Karaoke duet', 'Truth bomb', 'Wildcard', 'Crowd pick'],
-    friends: ['Group hug', 'Share a memory', 'Compliment everyone', 'Plan the next trip', 'Secret handshake', 'Best friend award'],
-    college: ['Pop quiz', 'Library run', 'Cafeteria dare', 'All-nighter story', 'Campus tour', 'Group project'],
-    sports: ['10 push-ups', 'Victory dance', 'Commentator voice', 'Team chant', 'Penalty shootout', 'Coach speech'],
   },
   vi: {
     drinking: ['Uống 1 ly', 'Qua lượt', 'Uống cùng người bên cạnh', 'Cạn ly', 'Đặt luật mới', 'Sự thật', 'Thử thách', 'Chỉ định người uống'],
@@ -152,9 +110,6 @@ const SAMPLE_ITEMS = {
     dating: ['Nắm tay', 'Khen đối phương', 'Nhìn mắt 30 giây', 'Kể một bí mật', 'Nhảy điệu chậm', 'Chụp selfie'],
     office: ['An', 'Bình', 'Chi', 'Dũng', 'Giang', 'Hà'],
     hardcore: ['Hát karaoke', 'Nhảy 30 giây', 'Cạn sạch ly', 'Bom sự thật', 'Lá bài tẩy', 'Cả hội chỉ định'],
-    friends: ['Ôm cả hội', 'Kể một kỷ niệm', 'Khen tất cả', 'Lên kế hoạch đi chơi', 'Bắt tay bí mật', 'Giải bạn thân'],
-    college: ['Kiểm tra bất ngờ', 'Chạy lên thư viện', 'Thử thách căng tin', 'Chuyện thức trắng đêm', 'Dạo một vòng trường', 'Bài tập nhóm'],
-    sports: ['Hít đất 10 cái', 'Nhảy ăn mừng', 'Giọng bình luận viên', 'Hô khẩu hiệu đội', 'Sút luân lưu', 'Bài phát biểu của HLV'],
   },
 };
 
