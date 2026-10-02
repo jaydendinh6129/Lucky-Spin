@@ -1,5 +1,5 @@
 /* Party Spinner service worker — cache-first for the app shell and CDN libs so it works offline. */
-const VERSION = 'party-games-v2.0';
+const VERSION = 'party-games-v2.1';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './icon.svg', './css/app.css',
   './js/engine/util.js', './js/data/themes.js', './js/data/i18n.js', './js/data/challenges.js', './js/data/questions.js', './js/data/cards.js', './js/data/registry.js',
@@ -43,7 +43,9 @@ self.addEventListener('fetch', (event) => {
   if (!isShell && !isCdn) return;
 
   // Always revalidate our own files with the server so updates are never served from a stale HTTP cache
-  const fetchAndCache = () => fetch(isShell ? new Request(req, { cache: 'no-cache' }) : req).then((res) => {
+  // Navigation requests cannot be re-wrapped in a Request (mode 'navigate'), so re-fetch by URL instead
+  const freshRequest = () => (req.mode === 'navigate' ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(new Request(req, { cache: 'no-cache' })));
+  const fetchAndCache = () => (isShell ? freshRequest() : fetch(req)).then((res) => {
     if (res && (res.ok || res.type === 'opaque')) {
       const copy = res.clone();
       caches.open(VERSION).then((c) => c.put(req, copy));
