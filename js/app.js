@@ -14,6 +14,10 @@ const gameComponents = () => ({
   memory: typeof MemoryGame !== 'undefined' ? MemoryGame : null,
   word: typeof WordGame !== 'undefined' ? WordGame : null,
   cards: typeof CardsGame !== 'undefined' ? CardsGame : null,
+  votecards: typeof VoteCardsGame !== 'undefined' ? VoteCardsGame : null,
+  charades: typeof CharadesGame !== 'undefined' ? CharadesGame : null,
+  imposter: typeof ImposterGame !== 'undefined' ? ImposterGame : null,
+  bomb: typeof BombGame !== 'undefined' ? BombGame : null,
 });
 
 function App() {

@@ -8,7 +8,6 @@ const REVEAL_CLASS = {
   lucky: 'reveal-jackpot',
   truth_or_dare: 'reveal-ignite',
   office: 'reveal-stamp',
-  hardcore: 'reveal-glitch',
 };
 
 /* setTimeout that is cancelled when the component unmounts */
@@ -447,7 +446,6 @@ const REVEALS = {
   lucky: SlotReveal,
   truth_or_dare: DevilReveal,
   office: StampReveal,
-  hardcore: FireworksReveal,
 };
 
 /* ============================================================

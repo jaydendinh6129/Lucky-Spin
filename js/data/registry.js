@@ -47,6 +47,9 @@ const GAME_REGISTRY = {
       reaction:      { id: 'reaction', icon: '⚡', plan: 'pro', component: 'reaction', players: [1, 12], duration: '2 min', scoring: 'time', difficulty: 'easy' },
       memory:        { id: 'memory', icon: '🧠', plan: 'pro', component: 'memory', players: [1, 8], duration: '2–4 min', scoring: 'time', difficulty: 'medium' },
       word:          { id: 'word', icon: '🔤', plan: 'pro', component: 'word', players: [1, 12], duration: '3–5 min', scoring: 'streak', difficulty: 'medium' },
+      charades:      { id: 'charades', icon: '🎭', plan: 'free', component: 'charades', players: [2, 12], duration: '5–10 min', scoring: 'points', difficulty: 'easy' },
+      bomb:          { id: 'bomb', icon: '💣', plan: 'free', component: 'bomb', players: [2, 12], duration: '5 min', scoring: 'points', difficulty: 'easy' },
+      imposter:      { id: 'imposter', icon: '🕵️', plan: 'pro', component: 'imposter', players: [3, 12], duration: '10 min', scoring: 'points', difficulty: 'medium' },
     },
   },
   cards: {
@@ -57,6 +60,9 @@ const GAME_REGISTRY = {
       'dare-cards':      { id: 'dare-cards', icon: '😈', plan: 'pro', component: 'cards', deck: 'dare', players: [1, 12], duration: '5–10 min', scoring: 'points', difficulty: 'medium' },
       'wild-cards':      { id: 'wild-cards', icon: '🃏', plan: 'pro', component: 'cards', deck: 'wild', players: [2, 12], duration: '10 min', scoring: 'points', difficulty: 'medium' },
       'chaos-cards':     { id: 'chaos-cards', icon: '💣', plan: 'pro', component: 'cards', deck: 'chaos', players: [3, 12], duration: '10 min', scoring: 'points', difficulty: 'hard' },
+      'likely-cards':    { id: 'likely-cards', icon: '👉', plan: 'free', component: 'votecards', deck: 'likely', players: [3, 12], duration: '10 min', scoring: 'points', difficulty: 'easy' },
+      'never-cards':     { id: 'never-cards', icon: '🙋', plan: 'pro', component: 'votecards', deck: 'never', players: [2, 12], duration: '10 min', scoring: 'points', difficulty: 'easy' },
+      'rather-cards':    { id: 'rather-cards', icon: '⚖️', plan: 'pro', component: 'votecards', deck: 'rather', players: [2, 12], duration: '10 min', scoring: 'points', difficulty: 'easy' },
     },
   },
 };
@@ -139,6 +145,12 @@ const GAME_META_TEXT = {
     'dare-cards':         { title: 'Dare Cards', description: 'Dares that keep the party moving.', howToPlay: 'Draw a dare and do it — or skip. Points for the brave.' },
     'wild-cards':         { title: 'Wild Cards', description: 'Cards that bend the rules.', howToPlay: 'Challenges mixed with wild cards: extra turns, shields, targets, switches and double points. Effects really apply.' },
     'chaos-cards':        { title: 'Chaos Cards', description: 'Everyone is affected.', howToPlay: 'Challenges mixed with chaos cards that hit the whole table: everyone plays, seats swap, order reverses, double rounds and random targets.' },
+    charades:             { title: 'Charades', description: 'Act it out, the table guesses.', howToPlay: 'One player holds the phone and acts out or describes the word while everyone else shouts guesses. Tap ✓ for every word guessed, ⏭ to pass. 45–90 seconds per turn, one point per word.' },
+    bomb:                 { title: 'Pass the Bomb', description: 'Say one, pass it on — don’t be holding it.', howToPlay: 'A category appears and the fuse is lit. Say something in the category, tap PASS and hand the phone to the next player. Nobody knows how long the fuse is. Whoever holds the bomb when it blows loses the round; everyone else scores.' },
+    imposter:             { title: 'Imposter', description: 'One of you doesn’t know the word.', howToPlay: 'Pass the phone around: everyone peeks at the secret word — except the imposter, who only sees the category. Discuss, drop hints without giving it away, then vote. Catch the imposter and everyone else scores; miss and the imposter scores double.' },
+    'likely-cards':       { title: 'Most Likely To', description: 'Point at the person who fits.', howToPlay: 'Read the card out loud. On three, everyone points at the player it describes. The host taps whoever got the most fingers — they score the point.' },
+    'never-cards':        { title: 'Never Have I Ever', description: 'Hands up if you have.', howToPlay: 'Read the card. Everyone who HAS done it raises a hand, and the host taps them. Points for honesty — the most daring life wins.' },
+    'rather-cards':       { title: 'Would You Rather', description: 'A or B — the minority pays.', howToPlay: 'Two choices. Everyone picks a side (tap a name to cycle A / B). The bigger side scores a point; the smaller side owes the table a quick dare. A tie is a tie.' },
   },
   vi: {
     'quick-battle':       { title: 'Đấu nhanh', description: 'Hai người, một thử thách chớp nhoáng.', howToPlay: 'Chọn 2 người chơi và thể thức (1, 3 hoặc 5 ván). Mỗi ván hiện một thử thách — chủ trò bấm ai thắng. Ai đủ số ván thắng trước là thắng.' },
@@ -166,6 +178,12 @@ const GAME_META_TEXT = {
     'dare-cards':         { title: 'Bài thách đố', description: 'Thách đố giữ nhiệt cho bữa tiệc.', howToPlay: 'Rút thách đố và thực hiện — hoặc bỏ qua. Điểm cho người dũng cảm.' },
     'wild-cards':         { title: 'Bài tẩy', description: 'Những lá bài bẻ cong luật chơi.', howToPlay: 'Thử thách trộn với bài tẩy: thêm lượt, khiên, chỉ định, hoán đổi và nhân đôi điểm. Hiệu ứng áp dụng thật.' },
     'chaos-cards':        { title: 'Bài hỗn loạn', description: 'Cả bàn đều bị ảnh hưởng.', howToPlay: 'Thử thách trộn với bài hỗn loạn tác động cả bàn: ai cũng chơi, đổi chỗ, đảo chiều, ván nhân đôi và chỉ định ngẫu nhiên.' },
+    charades:             { title: 'Đoán chữ', description: 'Diễn tả, cả bàn đoán.', howToPlay: 'Một người cầm điện thoại diễn hoặc mô tả từ trên màn hình, cả bàn hô đáp án. Bấm ✓ mỗi từ đoán trúng, ⏭ để bỏ qua. 45–90 giây mỗi lượt, mỗi từ một điểm.' },
+    bomb:                 { title: 'Chuyền bom', description: 'Nói một thứ, chuyền tiếp — đừng cầm khi nổ.', howToPlay: 'Hiện chủ đề và châm ngòi. Nói một thứ thuộc chủ đề, bấm CHUYỀN rồi đưa điện thoại cho người kế. Không ai biết ngòi dài bao lâu. Ai cầm bom lúc nổ thua ván đó; những người còn lại ghi điểm.' },
+    imposter:             { title: 'Kẻ giả mạo', description: 'Một người không biết từ bí mật.', howToPlay: 'Chuyền điện thoại: mỗi người xem từ bí mật — trừ kẻ giả mạo chỉ thấy chủ đề. Thảo luận, gợi ý khéo đừng lộ từ, rồi bỏ phiếu. Bắt được kẻ giả mạo thì mọi người ghi điểm; bắt hụt thì kẻ giả mạo ăn gấp đôi.' },
+    'likely-cards':       { title: 'Ai dễ nhất', description: 'Chỉ vào người giống mô tả nhất.', howToPlay: 'Đọc to lá bài. Đếm ba, cả bàn chỉ vào người đúng mô tả. Chủ trò bấm người bị chỉ nhiều nhất — người đó ghi điểm.' },
+    'never-cards':        { title: 'Tôi chưa bao giờ', description: 'Giơ tay nếu bạn đã từng.', howToPlay: 'Đọc lá bài. Ai ĐÃ TỪNG làm thì giơ tay, chủ trò bấm tên họ. Điểm cho sự thành thật — ai sống “dữ” nhất thắng.' },
+    'rather-cards':       { title: 'Bạn chọn gì', description: 'A hay B — phe ít người chịu phạt.', howToPlay: 'Hai lựa chọn. Mỗi người chọn một phe (bấm tên để đổi A / B). Phe đông hơn ghi điểm; phe ít hơn nợ cả bàn một thử thách nhanh. Hoà thì thôi.' },
   },
 };
 const SPINNER_HOWTO = {

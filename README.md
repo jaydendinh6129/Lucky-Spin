@@ -29,8 +29,8 @@ Physics wheel with flick-to-spin, per-theme skins (wooden *bàn nhậu*, casino 
 | ⚔️ Battle | Quick Battle (Bo1/3/5) · Best of 3 · Streak Battle · Team Battle · Elimination Battle |
 | 👑 King of the Table | Classic King · King Challenge · Last King Standing |
 | 🧠 Quiz | **Theme-based**: Animals · Flags Around the World · Representative Animals · Mix — 794 bilingual questions, multiple-choice and true/false, real flag images, 15 s per question with a speed bonus, difficulty filter, no repeats within a game or across recent games |
-| 🎲 Mini Games | Rock Paper Scissors · 5 Second Rule · Don't Laugh · Reaction Test · Memory · Word Challenge |
-| 🃏 Cards | Challenge · Truth · Dare · Wild (re-spin, target, shield, switch, double) · Chaos (everyone, swap, reverse, double round, random target) — effects are real state changes |
+| 🎲 Mini Games | Rock Paper Scissors · 5 Second Rule (60 prompts) · Don’t Laugh (24 prompts) · Reaction Test · Memory · Word Challenge (24 categories) · **Charades** (Heads Up!-style, 5 decks / 100 words, the word never reaches the big screen) · **Pass the Bomb** (hidden fuse, 40 categories) · **Imposter** (Spyfall-style: pass the phone, discuss, vote; 74 words) |
+| 🃏 Cards | Challenge · Truth · Dare (24 cards each) · Wild · Chaos (effects that change turn order, shields, multipliers) · **Most Likely To** (40) · **Never Have I Ever** (40) · **Would You Rather** (30) — vote decks the whole table answers at once |
 
 Every item has an **ⓘ popover** (hover on desktop, tap on touch) generated from its metadata: description, how to play, players, duration, scoring, difficulty, and the plan that unlocks it.
 

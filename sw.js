@@ -1,12 +1,12 @@
 /* JParty service worker — cache-first for the app shell and CDN libs so it works offline. */
-const VERSION = 'jparty-v2.5';
+const VERSION = 'jparty-v2.6';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './icon.svg', './css/app.css',
   './js/engine/util.js', './js/data/themes.js', './js/data/i18n.js', './js/data/challenges.js', './js/data/quiz/animals.js', './js/data/quiz/flags.js', './js/data/quiz/iconic-animals.js', './js/data/quiz/mix.js', './js/quiz/quizEngine.js', './js/content/store.js', './js/content/customGames.js', './js/data/cards.js', './js/data/registry.js',
   './js/engine/audio.js', './js/engine/effects.js', './js/engine/randomEngine.js', './js/engine/scoreEngine.js', './js/engine/timerEngine.js', './js/engine/playerEngine.js',
   './js/engine/gameEngine.js', './js/engine/sessionEngine.js', './js/subscription/plans.js', './js/venue/venue.js',
   './js/components/ui.js', './js/components/premium.js', './js/components/wheel.js', './js/components/items.js', './js/components/reveals.js', './js/components/modals.js',
-  './js/components/game.js', './js/components/sidebar.js', './js/components/creator.js', './js/realtime/transport.js', './js/realtime/host.js', './js/realtime/player.js', './js/venue/venueView.js', './js/venue/bigscreen.js', './js/games/spinner.js', './js/games/party.js', './js/games/battle.js', './js/games/king.js', './js/games/quiz.js', './js/games/minigames.js', './js/games/cards.js', './js/app.js',
+  './js/components/game.js', './js/components/sidebar.js', './js/components/creator.js', './js/realtime/transport.js', './js/realtime/host.js', './js/realtime/player.js', './js/venue/venueView.js', './js/venue/bigscreen.js', './js/games/spinner.js', './js/games/party.js', './js/games/battle.js', './js/games/king.js', './js/games/quiz.js', './js/games/minigames.js', './js/games/cards.js', './js/games/votecards.js', './js/games/partygames.js', './js/app.js',
 ];
 const CDN = [
   'https://cdn.tailwindcss.com',

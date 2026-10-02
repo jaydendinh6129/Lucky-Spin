@@ -12,7 +12,6 @@ const SKINS = {
   truth_or_dare: { r: 206, rim: 'obsidian', pointer: 'trident', hub: 'ember',  hubText: '#fff',    divider: 'rgba(255,200,230,0.75)' },
   dating:        { r: 206, rim: 'rosegold', pointer: 'cupid',   hub: 'heart',  hubText: '#fff',    divider: 'rgba(255,255,255,0.9)' },
   office:        { r: 206, rim: 'steel',    pointer: 'pin',     hub: 'button', hubText: '#fff',    divider: 'rgba(255,255,255,0.95)' },
-  hardcore:      { r: 206, rim: 'neon',     pointer: 'bolt',    hub: 'core',   hubText: '#00FFFF', divider: 'rgba(255,255,255,0.9)' },
 };
 const skinOf = (theme) => SKINS[theme.skin || theme.key] || SKINS.lucky;
 

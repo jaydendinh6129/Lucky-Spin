@@ -232,6 +232,19 @@ Hot-seat and live are the **same game**: `buildRound` returns `playerId: null, l
 
 ---
 
+## 14. Party classics added on the existing engines
+
+| Game | File | Engine shape | Notes |
+|---|---|---|---|
+| Most Likely To · Never Have I Ever · Would You Rather | `js/games/votecards.js` | one card per round, no single player; host records the table's answer in `cur.picks`, `resolveRound` scores everyone at once | `rather`: majority +1, minority owes a dare, tie scores nobody |
+| Charades | `js/games/partygames.js` | hot-seat actor, `useTimer`, ✓/⏭ patch the round, timeout resolves | word shown only to the actor; big screen gets `🎭 Guess the word · n ✓` |
+| Pass the Bomb | `js/games/partygames.js` | hidden fuse 20–45 s via `useTimer`, PASS rotates `holderIdx`, explosion resolves | holder loses, everyone else +1; fuse length never rendered |
+| Imposter | `js/games/partygames.js` | phases pass → discuss → vote; `Random.player` picks the imposter | caught → crew +1 (+1 to imposter if they still guess the word); escaped → imposter +2 |
+
+All of them reuse `useMiniSetup` / `MiniSetup` / `NextButton` / `useMiniStage` from `minigames.js`, so `partygames.js` and `votecards.js` load after it.
+
+---
+
 ## 10. Symbol index (every top-level declaration, per file)
 
 <!-- INDEX:BEGIN -->
@@ -297,7 +310,7 @@ Pure data file: defines the 6 wheel themes (visual config + monetisation flags),
 
 | Symbol | Kind | Signature | What it does |
 | --- | --- | --- | --- |
-| `THEMES` | const | `{ drinking, lucky, truth_or_dare, dating, office, hardcore } → each { key, icon, free, plan?, skin?, reveal?, palette[6], bgGradient, themeColor, accent, pointerColor, btnClass, resultEmoji, effect, floaters[], confettiColors[] }` | Registry of wheel themes keyed by id; drinking/lucky/truth_or_dare are free, dating/office/hardcore are PRO; a theme may set `skin`/`reveal` to reuse another theme's wheel skin and reveal; effect is one of shake\|confetti\|glow\|hearts\|clean\|flash. |
+| `THEMES` | const | `{ drinking, lucky, truth_or_dare, dating, office } → each { key, icon, free, plan?, skin?, reveal?, palette[6], bgGradient, themeColor, accent, pointerColor, btnClass, resultEmoji, effect, floaters[], confettiColors[] }` | Registry of wheel themes keyed by id; drinking/lucky/truth_or_dare are free, dating/office/hardcore are PRO; a theme may set `skin`/`reveal` to reuse another theme's wheel skin and reveal; effect is one of shake\|confetti\|glow\|hearts\|clean\|flash. |
 | `THEME_TEXT` | const | `{ en: { <themeKey>: { name, tagline, kicker } }, vi: { ... } }` | Localised display strings (name, tagline, result kicker) for every THEMES key, in English and Vietnamese. |
 | `SAMPLE_ITEMS` | const | `{ en: { <themeKey>: string[] }, vi: { <themeKey>: string[] } }` | Default wheel segment labels per theme and language (6-10 items; lucky is '1'..'10', office is sample people names). |
 | `TD_PROMPTS` | const | `{ en: { truth: string[14], dare: string[14] }, vi: { truth: string[14], dare: string[14] } }` | Truth-or-Dare prompt pools (14 truths + 14 dares) per language, used when a truth_or_dare spin resolves. |
@@ -573,7 +586,7 @@ Visual layers of the spinning wheel: per-theme skin table plus the static Rim, r
 | --- | --- | --- | --- |
 | `VB` | const | `500` | viewBox size (units) for the static layers (Rim, Gloss); center is VB/2. |
 | `HUB_R` | const | `46` | Hub (SPIN button) radius in viewBox units; Disk reserves label space outside it. |
-| `SKINS` | const | `{ drinking, lucky, truth_or_dare, dating, office, hardcore } → each { r, rim, pointer, hub, hubText, divider }` | Per-theme wheel look: disk radius r (194 or 206), rim style ('wood'\|'gold'\|'obsidian'\|'rosegold'\|'steel'\|'neon'), pointer shape ('bottle'\|'arrow'\|'trident'\|'cupid'\|'pin'\|'bolt'), hub art ('cap'\|'coin'\|'ember'\|'heart'\|'button'\|'core'), hubText color, divider stroke color. |
+| `SKINS` | const | `{ drinking, lucky, truth_or_dare, dating, office } → each { r, rim, pointer, hub, hubText, divider }` | Per-theme wheel look: disk radius r (194 or 206), rim style ('wood'\|'gold'\|'obsidian'\|'rosegold'\|'steel'\|'neon'), pointer shape ('bottle'\|'arrow'\|'trident'\|'cupid'\|'pin'\|'bolt'), hub art ('cap'\|'coin'\|'ember'\|'heart'\|'button'\|'core'), hubText color, divider stroke color. |
 | `skinOf` | function | `(theme) → skin object` | Resolves SKINS[theme.skin \|\| theme.key], falling back to SKINS.lucky. |
 | `DISHES` | const | `string[12] of emoji` | Emoji ring decorations for the 'wood' (drinking) rim; odd indices are food on plates, even are mugs. |
 | `HEARTS` | const | `string[4] of emoji` | Emoji cycle for the 'rosegold' (dating) rim decorations. |
@@ -604,7 +617,7 @@ Theme-specific cinematic "reveal" animations played inside the result modal afte
 
 | Symbol | Kind | Signature | What it does |
 | --- | --- | --- | --- |
-| `REVEAL_CLASS` | const | `{ dating, drinking, lucky, truth_or_dare, office, hardcore } → CSS class name` | Maps theme key → CSS animation class applied to the winner name once revealed (e.g. 'reveal-heart'); falls back to 'winner-in' in ResultModal. |
+| `REVEAL_CLASS` | const | `{ dating, drinking, lucky, truth_or_dare, office } → CSS class name` | Maps theme key → CSS animation class applied to the winner name once revealed (e.g. 'reveal-heart'); falls back to 'winner-in' in ResultModal. |
 | `useTimeline` | hook | `useTimeline() → at(ms, fn)` | Returns a setTimeout scheduler whose pending timers are all cleared on unmount. — uses `useRef`, `useEffect`, `useCallback` |
 | `animate` | function | `animate(el, frames, opts={}) → Promise` | Thin wrapper over Web Animations API el.animate (fill forwards, ease-out defaults); resolves when finished, resolves immediately if el missing / unsupported. |
 | `burst` | function | `burst(layer, x, y, glyphs, count, { dist=90, size=22, dur=800, color }) → void` | Scatters count '.fx-burst' glyph spans from (x,y) inside layer with random CSS vars, auto-removed; no-op when REDUCED_MOTION. — uses `REDUCED_MOTION`, `rand`, `randInt` |

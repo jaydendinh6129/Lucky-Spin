@@ -1,6 +1,9 @@
 /* ============================================================
  *  Card decks. Wild and chaos cards carry an `effect` that the cards
  *  game applies as a real state change (see js/games/cards.js).
+ *  Vote decks (likely · never · rather) are played by js/games/votecards.js:
+ *  the whole table answers one card at a time, the way Most Likely To,
+ *  Never Have I Ever and Would You Rather are played at a real party.
  * ============================================================ */
 
 const CARD_CONTENT = {
@@ -16,6 +19,20 @@ const CARD_CONTENT = {
       { id: 'ch08', title: 'Cheers', content: 'Make a toast to the whole table.', difficulty: 'easy', drink: true, alt: 'Give the whole table one shared compliment.' },
       { id: 'ch09', title: 'Mirror', content: 'Copy everything the player opposite you does until your next turn.', difficulty: 'medium' },
       { id: 'ch10', title: 'Showtime', content: 'Perform a 15-second TikTok-style dance.', difficulty: 'medium' },
+      { id: 'ch11', title: 'Question master', content: 'Until your next turn, anyone who answers a question you ask loses a point.', difficulty: 'medium' },
+      { id: 'ch12', title: 'Rhyme time', content: 'Say a word. Go around the table rhyming it — whoever stalls loses a point.', difficulty: 'easy' },
+      { id: 'ch13', title: 'Never-ending story', content: 'Start a story with one sentence; each player adds one. You judge the best line.', difficulty: 'easy' },
+      { id: 'ch14', title: 'Make a rule', content: 'Invent a rule everyone must follow for the rest of the game.', difficulty: 'easy' },
+      { id: 'ch15', title: 'Heaven', content: 'Point to the sky whenever you like — the last player to copy you loses a point.', difficulty: 'easy' },
+      { id: 'ch16', title: 'Categories', content: 'Pick a category and go around the table. The first to stall loses a point.', difficulty: 'easy' },
+      { id: 'ch17', title: 'Snake eyes', content: 'Until your next turn, anyone who makes eye contact with you owes you a point.', difficulty: 'medium' },
+      { id: 'ch18', title: 'Vote', content: 'The table votes on who has the best laugh. The winner must laugh for 10 seconds.', difficulty: 'easy' },
+      { id: 'ch19', title: 'Tongue twister', content: 'Say “unique New York” five times fast.', difficulty: 'medium' },
+      { id: 'ch20', title: 'Pose off', content: 'Strike a pose; the player opposite must out-pose you. The table decides.', difficulty: 'easy' },
+      { id: 'ch21', title: 'Phone call', content: 'Call a contact and sing them “Happy Birthday” — speaker on.', difficulty: 'hard' },
+      { id: 'ch22', title: 'Blindfold taste', content: 'Close your eyes and identify a snack someone hands you.', difficulty: 'medium' },
+      { id: 'ch23', title: 'Human metronome', content: 'Clap a steady beat for 20 seconds while everyone tries to throw you off.', difficulty: 'medium' },
+      { id: 'ch24', title: 'Little mate', content: 'Pick a buddy. Whenever one of you scores, the other does too — until your next turn.', difficulty: 'easy' },
     ],
     vi: [
       { id: 'ch01', title: 'Vòng tốc độ', content: 'Kể 5 thứ bạn mang ra đảo hoang trong 10 giây.', difficulty: 'easy' },
@@ -28,6 +45,20 @@ const CARD_CONTENT = {
       { id: 'ch08', title: 'Nâng ly', content: 'Nói một lời chúc cho cả bàn.', difficulty: 'easy', drink: true, alt: 'Dành một lời khen chung cho cả bàn.' },
       { id: 'ch09', title: 'Gương', content: 'Bắt chước mọi cử chỉ của người đối diện cho tới lượt sau.', difficulty: 'medium' },
       { id: 'ch10', title: 'Trình diễn', content: 'Nhảy một điệu kiểu TikTok trong 15 giây.', difficulty: 'medium' },
+      { id: 'ch11', title: 'Chúa tể câu hỏi', content: 'Tới lượt sau, ai trả lời câu hỏi của bạn là mất 1 điểm.', difficulty: 'medium' },
+      { id: 'ch12', title: 'Gieo vần', content: 'Nói một từ. Đi vòng bàn gieo vần — ai bí mất 1 điểm.', difficulty: 'easy' },
+      { id: 'ch13', title: 'Chuyện không hồi kết', content: 'Mở đầu câu chuyện bằng một câu; mỗi người thêm một câu. Bạn chấm câu hay nhất.', difficulty: 'easy' },
+      { id: 'ch14', title: 'Đặt luật', content: 'Đặt một luật cả bàn phải theo đến hết ván.', difficulty: 'easy' },
+      { id: 'ch15', title: 'Chỉ trời', content: 'Chỉ lên trời lúc nào tuỳ bạn — ai bắt chước cuối cùng mất 1 điểm.', difficulty: 'easy' },
+      { id: 'ch16', title: 'Chủ đề', content: 'Chọn một chủ đề và đi vòng bàn. Ai bí trước mất 1 điểm.', difficulty: 'easy' },
+      { id: 'ch17', title: 'Mắt rắn', content: 'Tới lượt sau, ai nhìn vào mắt bạn là nợ bạn 1 điểm.', difficulty: 'medium' },
+      { id: 'ch18', title: 'Bình chọn', content: 'Cả bàn bình chọn ai cười duyên nhất. Người thắng phải cười 10 giây.', difficulty: 'easy' },
+      { id: 'ch19', title: 'Líu lưỡi', content: 'Nói “con cá rô rơi rồi” năm lần thật nhanh.', difficulty: 'medium' },
+      { id: 'ch20', title: 'Đấu dáng', content: 'Tạo dáng; người đối diện phải tạo dáng đẹp hơn. Cả bàn chấm.', difficulty: 'easy' },
+      { id: 'ch21', title: 'Gọi điện', content: 'Gọi cho một người trong danh bạ và hát “Chúc mừng sinh nhật” — bật loa ngoài.', difficulty: 'hard' },
+      { id: 'ch22', title: 'Nếm mù', content: 'Nhắm mắt đoán món ăn vặt ai đó đưa cho bạn.', difficulty: 'medium' },
+      { id: 'ch23', title: 'Máy đếm nhịp', content: 'Vỗ tay đều 20 giây trong khi cả bàn tìm cách phá nhịp.', difficulty: 'medium' },
+      { id: 'ch24', title: 'Bạn nối khố', content: 'Chọn một người bạn. Một trong hai ghi điểm thì người kia cũng được — tới lượt sau.', difficulty: 'easy' },
     ],
   },
   truth: {
@@ -42,6 +73,20 @@ const CARD_CONTENT = {
       { id: 'tr08', title: 'Fear', content: 'What’s your most irrational fear?', difficulty: 'easy' },
       { id: 'tr09', title: 'Worst date', content: 'Describe your worst date in 20 seconds.', difficulty: 'medium' },
       { id: 'tr10', title: 'Petty', content: 'What’s the pettiest reason you stopped talking to someone?', difficulty: 'hard' },
+      { id: 'tr11', title: 'Caught', content: 'What’s something you did as a kid that your parents still don’t know about?', difficulty: 'medium' },
+      { id: 'tr12', title: 'Fake it', content: 'What do you pretend to like just to fit in?', difficulty: 'medium' },
+      { id: 'tr13', title: 'Screen time', content: 'What app do you spend an embarrassing amount of time on?', difficulty: 'easy' },
+      { id: 'tr14', title: 'Regret', content: 'What’s a purchase you regret the most?', difficulty: 'easy' },
+      { id: 'tr15', title: 'Celebrity crush', content: 'Who’s your celebrity crush, and would you really say yes?', difficulty: 'easy' },
+      { id: 'tr16', title: 'Table talk', content: 'Who at this table would you call first if you were in trouble? Why?', difficulty: 'medium' },
+      { id: 'tr17', title: 'Ghosted', content: 'Have you ever ghosted someone? What happened?', difficulty: 'hard' },
+      { id: 'tr18', title: 'Weird habit', content: 'What’s the weirdest habit you have when nobody is watching?', difficulty: 'easy' },
+      { id: 'tr19', title: 'Rewind', content: 'If you could redo one day of your life, which one?', difficulty: 'medium' },
+      { id: 'tr20', title: 'Secret playlist', content: 'What song do you secretly love but would never admit to?', difficulty: 'easy' },
+      { id: 'tr21', title: 'Lazy', content: 'What’s the laziest thing you’ve ever done?', difficulty: 'easy' },
+      { id: 'tr22', title: 'Jealous', content: 'When was the last time you were jealous of someone here?', difficulty: 'hard' },
+      { id: 'tr23', title: 'Rating', content: 'Rate your cooking honestly from 1 to 10 and defend it.', difficulty: 'easy' },
+      { id: 'tr24', title: 'Big one', content: 'What’s something you’ve never told anyone at this table?', difficulty: 'hard' },
     ],
     vi: [
       { id: 'tr01', title: 'Thú tội', content: 'Thứ xấu hổ nhất trong điện thoại bạn lúc này là gì?', difficulty: 'medium' },
@@ -54,6 +99,20 @@ const CARD_CONTENT = {
       { id: 'tr08', title: 'Nỗi sợ', content: 'Nỗi sợ vô lý nhất của bạn?', difficulty: 'easy' },
       { id: 'tr09', title: 'Buổi hẹn tệ nhất', content: 'Kể buổi hẹn hò tệ nhất trong 20 giây.', difficulty: 'medium' },
       { id: 'tr10', title: 'Nhỏ nhen', content: 'Lý do nhỏ nhen nhất khiến bạn nghỉ chơi ai đó?', difficulty: 'hard' },
+      { id: 'tr11', title: 'Bị bắt quả tang', content: 'Chuyện hồi nhỏ bạn làm mà bố mẹ tới giờ vẫn chưa biết?', difficulty: 'medium' },
+      { id: 'tr12', title: 'Giả vờ', content: 'Bạn giả vờ thích thứ gì chỉ để hoà nhập?', difficulty: 'medium' },
+      { id: 'tr13', title: 'Thời gian màn hình', content: 'App nào bạn dành thời gian nhiều đến mức xấu hổ?', difficulty: 'easy' },
+      { id: 'tr14', title: 'Hối hận', content: 'Món đồ bạn mua mà hối hận nhất?', difficulty: 'easy' },
+      { id: 'tr15', title: 'Crush người nổi tiếng', content: 'Crush người nổi tiếng của bạn là ai, và bạn có dám đồng ý thật không?', difficulty: 'easy' },
+      { id: 'tr16', title: 'Người đầu tiên', content: 'Gặp chuyện, bạn gọi ai ở bàn này đầu tiên? Vì sao?', difficulty: 'medium' },
+      { id: 'tr17', title: 'Bơ đẹp', content: 'Bạn từng “bơ” ai chưa? Chuyện ra sao?', difficulty: 'hard' },
+      { id: 'tr18', title: 'Thói quen lạ', content: 'Thói quen kỳ lạ nhất của bạn khi không ai nhìn?', difficulty: 'easy' },
+      { id: 'tr19', title: 'Tua lại', content: 'Nếu được sống lại một ngày trong đời, bạn chọn ngày nào?', difficulty: 'medium' },
+      { id: 'tr20', title: 'Playlist bí mật', content: 'Bài hát bạn âm thầm mê nhưng không bao giờ thừa nhận?', difficulty: 'easy' },
+      { id: 'tr21', title: 'Lười', content: 'Việc lười nhất bạn từng làm?', difficulty: 'easy' },
+      { id: 'tr22', title: 'Ghen tị', content: 'Lần gần nhất bạn ghen tị với một người ở đây là khi nào?', difficulty: 'hard' },
+      { id: 'tr23', title: 'Chấm điểm', content: 'Tự chấm tài nấu ăn của bạn từ 1 đến 10 và bảo vệ con số đó.', difficulty: 'easy' },
+      { id: 'tr24', title: 'Câu lớn', content: 'Điều gì bạn chưa từng kể với bất kỳ ai ở bàn này?', difficulty: 'hard' },
     ],
   },
   dare: {
@@ -68,6 +127,20 @@ const CARD_CONTENT = {
       { id: 'da08', title: 'Plank', content: 'Hold a plank for 30 seconds.', difficulty: 'medium' },
       { id: 'da09', title: 'Anchor', content: 'Talk like a news anchor until your next turn.', difficulty: 'easy' },
       { id: 'da10', title: 'Motivation', content: 'Give a 30-second motivational speech about socks.', difficulty: 'medium' },
+      { id: 'da11', title: 'Serenade', content: 'Sing a love song to the player opposite you — eye contact required.', difficulty: 'medium' },
+      { id: 'da12', title: 'Hairstyle', content: 'Let the table restyle your hair. Keep it for 3 rounds.', difficulty: 'medium' },
+      { id: 'da13', title: 'Walk of fame', content: 'Walk to the nearest door and back like a supermodel.', difficulty: 'easy' },
+      { id: 'da14', title: 'Slow-mo', content: 'Do everything in slow motion until your next turn.', difficulty: 'easy' },
+      { id: 'da15', title: 'Food critic', content: 'Review the nearest snack like a Michelin inspector.', difficulty: 'easy' },
+      { id: 'da16', title: 'Yoga master', content: 'Hold a tree pose for 20 seconds.', difficulty: 'easy' },
+      { id: 'da17', title: 'Beatbox', content: 'Beatbox for 15 seconds while someone raps.', difficulty: 'medium' },
+      { id: 'da18', title: 'Phone swap', content: 'Let the player on your right post a story on your social media.', difficulty: 'hard' },
+      { id: 'da19', title: 'Opera', content: 'Sing everything you say until your next turn.', difficulty: 'medium' },
+      { id: 'da20', title: 'Fortune teller', content: 'Read the palm of the player on your left and predict their week.', difficulty: 'easy' },
+      { id: 'da21', title: 'Freeze', content: 'Whenever anyone says your name until your next turn, freeze for 5 seconds.', difficulty: 'easy' },
+      { id: 'da22', title: 'Chicken', content: 'Act like a chicken until someone laughs.', difficulty: 'medium' },
+      { id: 'da23', title: 'Confession booth', content: 'Confess your most embarrassing moment in a whisper to the whole table.', difficulty: 'hard' },
+      { id: 'da24', title: 'Wall sit', content: 'Hold a wall-sit for 45 seconds.', difficulty: 'hard' },
     ],
     vi: [
       { id: 'da01', title: 'Nhại', content: 'Nhại một người trong phòng cho tới khi họ đoán ra.', difficulty: 'easy' },
@@ -80,6 +153,20 @@ const CARD_CONTENT = {
       { id: 'da08', title: 'Plank', content: 'Plank 30 giây.', difficulty: 'medium' },
       { id: 'da09', title: 'Phát thanh viên', content: 'Nói như phát thanh viên thời sự tới lượt sau.', difficulty: 'easy' },
       { id: 'da10', title: 'Truyền cảm hứng', content: 'Diễn thuyết truyền cảm hứng 30 giây về… đôi tất.', difficulty: 'medium' },
+      { id: 'da11', title: 'Hát tặng', content: 'Hát một bản tình ca cho người đối diện — phải nhìn vào mắt.', difficulty: 'medium' },
+      { id: 'da12', title: 'Kiểu tóc mới', content: 'Để cả bàn làm lại tóc cho bạn. Giữ nguyên 3 lượt.', difficulty: 'medium' },
+      { id: 'da13', title: 'Sàn diễn', content: 'Đi tới cửa gần nhất rồi quay lại như siêu mẫu.', difficulty: 'easy' },
+      { id: 'da14', title: 'Quay chậm', content: 'Làm mọi thứ quay chậm cho tới lượt sau.', difficulty: 'easy' },
+      { id: 'da15', title: 'Giám khảo ẩm thực', content: 'Review món ăn vặt gần nhất như thanh tra Michelin.', difficulty: 'easy' },
+      { id: 'da16', title: 'Yoga', content: 'Giữ tư thế cái cây 20 giây.', difficulty: 'easy' },
+      { id: 'da17', title: 'Beatbox', content: 'Beatbox 15 giây cho ai đó rap.', difficulty: 'medium' },
+      { id: 'da18', title: 'Đổi máy', content: 'Để người bên phải đăng một story lên mạng xã hội của bạn.', difficulty: 'hard' },
+      { id: 'da19', title: 'Opera', content: 'Hát mọi câu bạn nói cho tới lượt sau.', difficulty: 'medium' },
+      { id: 'da20', title: 'Thầy bói', content: 'Xem chỉ tay người bên trái và đoán tuần tới của họ.', difficulty: 'easy' },
+      { id: 'da21', title: 'Đứng hình', content: 'Tới lượt sau, ai gọi tên bạn thì đứng hình 5 giây.', difficulty: 'easy' },
+      { id: 'da22', title: 'Con gà', content: 'Làm con gà cho tới khi có người cười.', difficulty: 'medium' },
+      { id: 'da23', title: 'Phòng xưng tội', content: 'Thì thầm khoảnh khắc xấu hổ nhất của bạn cho cả bàn nghe.', difficulty: 'hard' },
+      { id: 'da24', title: 'Tựa tường', content: 'Ngồi tựa tường 45 giây.', difficulty: 'hard' },
     ],
   },
   wild: {
@@ -116,12 +203,56 @@ const CARD_CONTENT = {
   },
 };
 
+/* ---------- vote decks ---------- */
+/* likely: "Most likely to…" — everyone points at someone; the host taps who got the most fingers. */
+const VOTE_CARDS = {
+  likely: {
+    en: ['become famous', 'forget their own birthday', 'survive a zombie apocalypse', 'cry at a movie', 'get lost in their own city', 'become a millionaire', 'fall asleep at a party', 'talk their way out of a ticket', 'move abroad', 'adopt five cats', 'start a cult', 'win a reality show', 'eat something off the floor', 'text an ex tonight', 'laugh at a funeral', 'become a politician', 'get a tattoo on a whim', 'forget where they parked', 'befriend a stranger in 5 minutes', 'win an argument with a wall', 'go viral by accident', 'marry for money', 'sing in public sober', 'cheat at a board game', 'spend a whole salary in a day', 'live to 100', 'become a teacher', 'get kicked out of a library', 'end up on the news', 'order the most expensive thing on the menu', 'be late to their own wedding', 'sleep through an earthquake', 'binge a series in one night', 'start a business next week', 'talk to animals like people', 'win a dance battle', 'say “I love you” first', 'forget a friend’s name mid-sentence', 'become a monk', 'have the messiest room'],
+    vi: ['nổi tiếng', 'quên sinh nhật của chính mình', 'sống sót qua tận thế zombie', 'khóc khi xem phim', 'lạc đường trong thành phố của mình', 'thành triệu phú', 'ngủ gật trong tiệc', 'nói khéo để thoát vé phạt', 'ra nước ngoài sống', 'nuôi năm con mèo', 'lập giáo phái', 'thắng show truyền hình thực tế', 'ăn đồ rơi dưới sàn', 'nhắn tin cho người yêu cũ tối nay', 'cười trong đám tang', 'làm chính trị gia', 'xăm mình ngẫu hứng', 'quên chỗ đậu xe', 'kết bạn với người lạ trong 5 phút', 'cãi thắng cả bức tường', 'vô tình viral', 'cưới vì tiền', 'hát giữa đám đông khi tỉnh táo', 'ăn gian khi chơi cờ', 'tiêu hết lương trong một ngày', 'sống tới 100 tuổi', 'làm giáo viên', 'bị đuổi khỏi thư viện', 'lên bản tin thời sự', 'gọi món đắt nhất trong menu', 'đến trễ đám cưới của mình', 'ngủ xuyên động đất', 'cày hết một series trong một đêm', 'khởi nghiệp tuần sau', 'nói chuyện với thú cưng như người', 'thắng đấu nhảy', 'nói “yêu” trước', 'quên tên bạn giữa câu', 'đi tu', 'có phòng bừa bộn nhất'],
+  },
+  /* never: "Never have I ever…" — whoever HAS done it raises a hand; the host taps them. */
+  never: {
+    en: ['sent a text to the wrong person', 'pretended to be sick to skip work or school', 'fallen asleep in a cinema', 'stalked an ex online', 'lied about my age', 'eaten a whole pizza alone', 'cried in public', 'faked a phone call to escape a conversation', 're-gifted a present', 'sung karaoke in front of strangers', 'forgotten someone’s name while introducing them', 'been on TV', 'broken a bone', 'laughed so hard I cried', 'gone a whole day without my phone', 'stayed awake for 24 hours', 'walked into a glass door', 'pretended to know a song and lip-synced', 'kept a secret for over a year', 'had a crush on a teacher', 'been kicked out of somewhere', 'danced on a table', 'cheated on a test', 'lost my phone on a night out', 'eaten food that fell on the floor', 'googled myself', 'cooked something that set off the smoke alarm', 'gotten a tattoo', 'been in a food fight', 'waved back at someone who wasn’t waving at me', 'ridden a motorbike without a helmet', 'missed a flight', 'talked to myself in the mirror', 'binge-watched a show in one weekend', 'tripped in front of a crowd', 'had the same password for everything', 'screamed on a roller coaster', 'left a restaurant without paying by mistake', 'learned a TikTok dance', 'pretended to understand a movie I didn’t'],
+    vi: ['nhắn tin nhầm người', 'giả ốm để nghỉ làm/nghỉ học', 'ngủ quên trong rạp phim', 'lén xem trang người yêu cũ', 'nói dối về tuổi', 'ăn hết một cái pizza một mình', 'khóc giữa chốn đông người', 'giả vờ nghe điện thoại để thoát khỏi cuộc trò chuyện', 'tặng lại quà người khác tặng mình', 'hát karaoke trước người lạ', 'quên tên ai đó ngay lúc đang giới thiệu họ', 'lên TV', 'gãy xương', 'cười đến chảy nước mắt', 'cả ngày không đụng điện thoại', 'thức trắng 24 tiếng', 'đâm vào cửa kính', 'giả vờ biết bài hát rồi nhép miệng', 'giữ bí mật hơn một năm', 'crush thầy cô giáo', 'bị đuổi khỏi đâu đó', 'nhảy trên bàn', 'quay cóp khi thi', 'làm mất điện thoại khi đi chơi đêm', 'ăn đồ rơi xuống sàn', 'tự google tên mình', 'nấu ăn tới mức báo cháy kêu', 'xăm mình', 'tham gia ném đồ ăn', 'vẫy tay lại với người không vẫy mình', 'chạy xe máy không đội mũ bảo hiểm', 'lỡ chuyến bay', 'tự nói chuyện với mình trong gương', 'cày hết một show trong một cuối tuần', 'vấp ngã trước đám đông', 'dùng một mật khẩu cho mọi thứ', 'hét trên tàu lượn', 'rời nhà hàng quên trả tiền', 'học nhảy TikTok', 'giả vờ hiểu bộ phim mình không hiểu'],
+  },
+  /* rather: "Would you rather A or B?" — everyone picks a side; the minority does a quick dare. */
+  rather: {
+    en: [
+      { a: 'Be able to fly', b: 'Be invisible' }, { a: 'Never use social media again', b: 'Never watch a movie again' }, { a: 'Always be 10 minutes late', b: 'Always be 20 minutes early' },
+      { a: 'Have no phone for a month', b: 'Have no friends for a month' }, { a: 'Speak every language', b: 'Play every instrument' }, { a: 'Live without music', b: 'Live without the internet' },
+      { a: 'Be famous but poor', b: 'Be rich but unknown' }, { a: 'Eat only sweet food', b: 'Eat only salty food' }, { a: 'Know how you will die', b: 'Know when you will die' },
+      { a: 'Have a rewind button', b: 'Have a pause button' }, { a: 'Always have to sing instead of speak', b: 'Always have to dance while walking' }, { a: 'Live in the mountains', b: 'Live by the sea' },
+      { a: 'Travel to the past', b: 'Travel to the future' }, { a: 'Be the funniest person in the room', b: 'Be the smartest person in the room' }, { a: 'Give up coffee forever', b: 'Give up dessert forever' },
+      { a: 'Read minds', b: 'See the future' }, { a: 'Have a personal chef', b: 'Have a personal driver' }, { a: 'Fight 100 duck-sized horses', b: 'Fight 1 horse-sized duck' },
+      { a: 'Always say what you think', b: 'Never speak again' }, { a: 'Be too hot forever', b: 'Be too cold forever' }, { a: 'Live in a video game', b: 'Live in a movie' },
+      { a: 'Have unlimited money', b: 'Have unlimited time' }, { a: 'Lose your sense of taste', b: 'Lose your sense of smell' }, { a: 'Be a famous singer', b: 'Be a famous athlete' },
+      { a: 'Work your dream job for low pay', b: 'Work a boring job for huge pay' }, { a: 'Have a pet dragon', b: 'Have a pet dinosaur' }, { a: 'Never age physically', b: 'Never age mentally' },
+      { a: 'Eat a bug', b: 'Lick the floor' }, { a: 'Wear the same outfit every day', b: 'Eat the same meal every day' }, { a: 'Have a free trip anywhere', b: 'Have a free meal anywhere for a year' },
+    ],
+    vi: [
+      { a: 'Biết bay', b: 'Tàng hình' }, { a: 'Không bao giờ dùng mạng xã hội nữa', b: 'Không bao giờ xem phim nữa' }, { a: 'Luôn trễ 10 phút', b: 'Luôn sớm 20 phút' },
+      { a: 'Không điện thoại một tháng', b: 'Không bạn bè một tháng' }, { a: 'Nói được mọi ngôn ngữ', b: 'Chơi được mọi nhạc cụ' }, { a: 'Sống không âm nhạc', b: 'Sống không internet' },
+      { a: 'Nổi tiếng nhưng nghèo', b: 'Giàu nhưng không ai biết' }, { a: 'Chỉ ăn đồ ngọt', b: 'Chỉ ăn đồ mặn' }, { a: 'Biết mình chết thế nào', b: 'Biết mình chết khi nào' },
+      { a: 'Có nút tua lại', b: 'Có nút tạm dừng' }, { a: 'Phải hát thay vì nói', b: 'Phải nhảy khi đi bộ' }, { a: 'Sống trên núi', b: 'Sống cạnh biển' },
+      { a: 'Về quá khứ', b: 'Tới tương lai' }, { a: 'Là người hài hước nhất phòng', b: 'Là người thông minh nhất phòng' }, { a: 'Bỏ cà phê mãi mãi', b: 'Bỏ đồ ngọt mãi mãi' },
+      { a: 'Đọc được suy nghĩ', b: 'Nhìn thấy tương lai' }, { a: 'Có đầu bếp riêng', b: 'Có tài xế riêng' }, { a: 'Đấu với 100 con ngựa cỡ con vịt', b: 'Đấu với 1 con vịt cỡ con ngựa' },
+      { a: 'Luôn nói thật lòng', b: 'Không bao giờ nói nữa' }, { a: 'Luôn thấy nóng', b: 'Luôn thấy lạnh' }, { a: 'Sống trong game', b: 'Sống trong phim' },
+      { a: 'Tiền vô hạn', b: 'Thời gian vô hạn' }, { a: 'Mất vị giác', b: 'Mất khứu giác' }, { a: 'Là ca sĩ nổi tiếng', b: 'Là vận động viên nổi tiếng' },
+      { a: 'Làm việc mơ ước lương thấp', b: 'Làm việc chán lương khủng' }, { a: 'Nuôi rồng', b: 'Nuôi khủng long' }, { a: 'Không già đi về thể xác', b: 'Không già đi về tâm hồn' },
+      { a: 'Ăn một con bọ', b: 'Liếm sàn nhà' }, { a: 'Mặc một bộ đồ mỗi ngày', b: 'Ăn một món mỗi ngày' }, { a: 'Một chuyến đi miễn phí bất kỳ đâu', b: 'Ăn miễn phí bất kỳ đâu trong một năm' },
+    ],
+  },
+};
+
 const CARD_TYPE_META = {
   challenge: { icon: '🎯', color: '#f97316' },
   truth:     { icon: '❓', color: '#38bdf8' },
   dare:      { icon: '😈', color: '#e11d48' },
   wild:      { icon: '🃏', color: '#a855f7' },
   chaos:     { icon: '💣', color: '#facc15' },
+  likely:    { icon: '👉', color: '#34d399' },
+  never:     { icon: '🙋', color: '#f472b6' },
+  rather:    { icon: '⚖️', color: '#60a5fa' },
 };
 
 /* The cards a deck draws from. Wild/chaos decks mix effect cards into regular challenges. */
@@ -133,3 +264,5 @@ const buildDeck = (deckKey, lang) => {
     default:      return of(deckKey);
   }
 };
+/* Vote decks are plain strings / pairs; give them ids so useBag can track them */
+const buildVoteDeck = (deckKey, lang) => (VOTE_CARDS[deckKey][lang] || []).map((c, i) => (typeof c === 'string' ? { id: `${deckKey}-${i}`, text: c } : { id: `${deckKey}-${i}`, ...c }));

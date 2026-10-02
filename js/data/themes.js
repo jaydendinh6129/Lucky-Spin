@@ -58,17 +58,6 @@ const THEMES = {
     floaters: [],
     confettiColors: ['#1976D2', '#388E3C', '#F57C00'],
   },
-  hardcore: {
-    key: 'hardcore', icon: '🎆', free: false,
-    palette: ['#FF00FF', '#00FFFF', '#FFFF00', '#FF0080', '#00FF80', '#80FF00'],
-    bgGradient: 'linear-gradient(135deg, #000000 0%, #4a044e 50%, #18181b 100%)',
-    themeColor: '#000000',
-    accent: '#FF00FF', pointerColor: '#00FFFF',
-    btnClass: 'bg-gradient-to-r from-fuchsia-600 to-cyan-500 hover:from-fuchsia-700 hover:to-cyan-600 text-white',
-    resultEmoji: '🎆', effect: 'flash',
-    floaters: ['🎆', '⚡', '🔥', '💥'],
-    confettiColors: ['#FF00FF', '#00FFFF', '#FFFF00'],
-  },
 };
 
 /* ============================================================
@@ -82,7 +71,6 @@ const THEME_TEXT = {
     truth_or_dare: { name: 'Truth or Dare',  tagline: 'No backing out',     kicker: 'No backing out now 😈' },
     dating:        { name: 'Dating',         tagline: 'Catch the feeling',  kicker: 'Destiny has decided 💘' },
     office:        { name: 'Office',         tagline: 'Pick the PIC',       kicker: 'Congrats, you’re the PIC 📌' },
-    hardcore:      { name: 'Hardcore Party', tagline: 'No survivors',       kicker: 'NO MERCY — YOU GOT IT 🎆' },
   },
   vi: {
     drinking:      { name: 'Nhậu',           tagline: 'Dô! Trăm phần trăm!', kicker: 'Cạn ly đi chờ chi! 🍻' },
@@ -90,7 +78,6 @@ const THEME_TEXT = {
     truth_or_dare: { name: 'Thật hay Thách', tagline: 'Không được chối',     kicker: 'Hết đường lui rồi nhé 😈' },
     dating:        { name: 'Hẹn hò',         tagline: 'Bắt trọn cảm xúc',    kicker: 'Định mệnh đã chọn 💘' },
     office:        { name: 'Công sở',        tagline: 'Chọn người phụ trách', kicker: 'Chúc mừng, bạn là PIC 📌' },
-    hardcore:      { name: 'Quẩy tới bến',   tagline: 'Không ai sống sót',   kicker: 'KHÔNG KHOAN NHƯỢNG 🎆' },
   },
 };
 
@@ -101,7 +88,6 @@ const SAMPLE_ITEMS = {
     truth_or_dare: ['Truth', 'Dare', 'Skip (1 drink)', 'Double Dare', 'Reverse', 'Wild Card'],
     dating: ['Hold hands', 'Compliment them', 'Eye contact 30s', 'Share a secret', 'Slow dance', 'Take a selfie'],
     office: ['Alice', 'Bob', 'Charlie', 'Diana', 'Evan', 'Fiona'],
-    hardcore: ['Body shot', 'Dance break', 'Karaoke duet', 'Truth bomb', 'Wildcard', 'Crowd pick'],
   },
   vi: {
     drinking: ['Uống 1 ly', 'Qua lượt', 'Uống cùng người bên cạnh', 'Cạn ly', 'Đặt luật mới', 'Sự thật', 'Thử thách', 'Chỉ định người uống'],
@@ -109,7 +95,6 @@ const SAMPLE_ITEMS = {
     truth_or_dare: ['Sự thật', 'Thử thách', 'Bỏ qua (uống 1 ly)', 'Thử thách x2', 'Đổi chiều', 'Tự chọn'],
     dating: ['Nắm tay', 'Khen đối phương', 'Nhìn mắt 30 giây', 'Kể một bí mật', 'Nhảy điệu chậm', 'Chụp selfie'],
     office: ['An', 'Bình', 'Chi', 'Dũng', 'Giang', 'Hà'],
-    hardcore: ['Hát karaoke', 'Nhảy 30 giây', 'Cạn sạch ly', 'Bom sự thật', 'Lá bài tẩy', 'Cả hội chỉ định'],
   },
 };
 

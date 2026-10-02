@@ -19,6 +19,8 @@ A no-build React 18 party-game console. Plain JSX files are compiled **in the br
 5. **Do not touch the Spinner's behaviour** (`js/games/spinner.js`) unless asked; it is the flagship experience and was ported verbatim from the original app.
 6. Hooks are destructured once in `js/engine/util.js` (`const { useState, … } = React`). If you need another React hook, add it there.
 7. Content banks are data, not UI: challenges/questions/cards live in `js/data/*` and games read them through `useBag` (fair, non-repeating draws).
+8. **Secret information never goes to the big screen.** Charades' word and Imposter's word/role are shown only on the host phone; `publish()` sends the category or a status line instead. Keep that rule for any new hidden-info game.
+9. Host taps can arrive faster than React re-renders. When a handler builds the next round payload from `cur`, read it through a ref that you also update synchronously (see `picksRef` in `votecards.js`), or two quick taps overwrite each other.
 
 ## Adding a game (checklist)
 1. `js/data/registry.js`: add the item under its mode in `GAME_REGISTRY` (`id, icon, plan, component, players:[min,max], duration, scoring, difficulty` + any variant fields) and its `title/description/howToPlay` in `GAME_META_TEXT.en` and `.vi`.
@@ -40,6 +42,8 @@ Add an entry to `THEMES` (`js/data/themes.js`) with `plan`, palette, gradients, 
 | Timers | `js/engine/timerEngine.js` |
 | Party session, history, stats | `js/engine/sessionEngine.js` |
 | Realtime transport / host / phone client | `js/realtime/*` |
+| Vote decks (Most Likely To / Never Have I Ever / Would You Rather) | `js/games/votecards.js`, `VOTE_CARDS` in `js/data/cards.js` |
+| Charades / Imposter / Pass the Bomb (hot-seat, reuse mini-game chrome) | `js/games/partygames.js`, banks in `js/data/challenges.js` |
 | Venue branding, QR, host controls, Big Screen | `js/venue/*` |
 | Wheel skins, cinematic reveals | `js/components/wheel.js`, `js/components/reveals.js` |
 
