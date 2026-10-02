@@ -206,7 +206,7 @@ flowchart LR
 ```
 
 - **One question, many games.** A game stores IDs, so Duplicate creates a new game pointing at the same questions; editing the copy never touches the original. Deleting a question removes it from every game that referenced it.
-- **One engine.** A custom game becomes a quiz theme, so `QuizGame`, the state machine, the scoreboard and the result screen are shared with the built-in themes. There is no separate "classroom engine".
+- **One engine, one mode.** A custom game becomes a quiz theme (`custom:<gameId>`) and is registered under `GAME_REGISTRY.quiz.games`, so it appears in the Quiz accordion right after Animals / Flags / Representative Animals / Mix, and `QuizGame`, the state machine, the scoreboard and the result screen are shared. There is no separate "My Games" or "classroom" mode; My Games / Question Bank / Create game are screens reached from the Quiz accordion footer.
 - **Timers** resolve per question: `question.timeMs ?? game.config.timerSec`. `0` means no limit (the ring is replaced by an ∞ badge and the round never auto-submits).
 - **Teams** are a player grouping, not a scoring system: a team's score is the sum of its members', computed from the same `Score` helpers (`TeamScores` in `js/components/game.js`).
 - **Persistence is local and honest**: images are real Blobs in IndexedDB on that device. Nothing is uploaded; `ContentStore` is the only module that knows this, so a server can replace it later without touching the UI.

@@ -240,9 +240,9 @@ function SideMenu({
             <div className="space-y-2">
               {GAME_MODES.map((mode) => (
                 <GameModeAccordion key={mode.id} t={t} lang={lang} mode={mode} open={openModes.includes(mode.id)} onToggle={() => onToggleMode(mode.id)} activeGame={activeGame} sub={sub} onPickGame={onPickGame}
-                  footer={mode.id === 'mygames' ? (
-                    <div className="px-1.5 pt-2 space-y-1.5">
-                      {mode.items.length === 0 && <div className="text-[11px] text-white/45 px-1">{t.noGamesYet}</div>}
+                  footer={mode.id === 'quiz' ? (
+                    <div className="px-1.5 pt-2 space-y-1.5 border-t border-white/10 mt-2">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45 px-1 pt-1">🎓 {t.myGames}</div>
                       <button onClick={() => onOpenCreator('editor', null)} className="w-full min-h-[44px] rounded-xl font-bold text-sm btn-press text-white shadow" style={{ background: 'linear-gradient(90deg, #a78bfa, #f472b6)' }}>+ {t.createGame}</button>
                       <div className="grid grid-cols-2 gap-1.5">
                         <button onClick={() => onOpenCreator('mygames')} className="min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold btn-press">🎓 {t.myGames}</button>
@@ -296,7 +296,7 @@ function SideMenu({
               )}
 
               {/* ---- Quiz (built-in themes) ---- */}
-              {modeId === 'quiz' && quizPrefs && (
+              {modeId === 'quiz' && quizPrefs && !activeCustomId && (
                 <div className="space-y-3 rounded-2xl bg-black/15 border border-white/10 p-3">
                   <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">🧠 {MODE_TEXT[lang].quiz.title}</div>
                   <div>
@@ -330,14 +330,14 @@ function SideMenu({
                 </div>
               )}
 
-              {/* ---- Custom game: its rules live in the editor, so link there ---- */}
-              {modeId === 'mygames' && (
+              {/* ---- A custom quiz keeps its rules in the editor, so link there ---- */}
+              {modeId === 'quiz' && activeCustomId && (
                 <div className="space-y-2 rounded-2xl bg-black/15 border border-white/10 p-3">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">🎓 {MODE_TEXT[lang].mygames.title}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">🎓 {t.myGames}</div>
                   <div className="text-[11px] text-white/60">{t.customSettingsHint}</div>
                   <div className="grid grid-cols-2 gap-1.5">
-                    {activeCustomId && <button onClick={() => onOpenCreator('editor', activeCustomId)} className="min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold btn-press">✏️ {t.editGame}</button>}
-                    <button onClick={() => onOpenCreator('bank')} className={`min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold btn-press ${activeCustomId ? '' : 'col-span-2'}`}>📚 {t.questionBank}</button>
+                    <button onClick={() => onOpenCreator('editor', activeCustomId)} className="min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold btn-press">✏️ {t.editGame}</button>
+                    <button onClick={() => onOpenCreator('bank')} className="min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold btn-press">📚 {t.questionBank}</button>
                   </div>
                 </div>
               )}

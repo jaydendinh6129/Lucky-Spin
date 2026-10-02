@@ -173,9 +173,9 @@ function App() {
   const openCreator = (view, gameId) => { sfx('click'); setEditorGameId(gameId || null); setScreen(view); setMenuOpen(false); };
   /* A custom game is a quiz theme, so playing it is the same code path as any other game */
   const playCustomGame = (game) => {
-    const def = findGame('mygames', `quiz-custom:${game.id}`);
+    const def = findGame('quiz', `quiz-custom:${game.id}`);
     if (!def) { showToast(t.vNoQuestions); return; }
-    setActiveGame({ mode: 'mygames', id: def.item.id });
+    setActiveGame({ mode: 'quiz', id: def.item.id });
     setGameRun((n) => n + 1);
     goPlay();
   };
@@ -363,7 +363,7 @@ function App() {
 
       <SideMenu
         open={menuOpen} onClose={() => setMenuOpen(false)} t={t} lang={lang} setLang={setLang}
-        openModes={openModes} onToggleMode={toggleMode} activeGame={screen === 'play' ? activeGame : { mode: screen === 'editor' || screen === 'bank' ? 'mygames' : screen, id: '' }} onPickGame={pickGame}
+        openModes={openModes} onToggleMode={toggleMode} activeGame={screen === 'play' ? activeGame : { mode: ['editor', 'bank', 'mygames'].includes(screen) ? 'quiz' : screen, id: '' }} onPickGame={pickGame}
         sub={sub} onOpenPricing={openPricing} onDevSetPlan={devSetPlan} venue={brand} onOpenVenue={openVenue}
         quizPrefs={quizPrefs} setQuizPrefs={setQuizPrefs} activeDef={activeDef}
         session={session} onOpenParty={openParty} onOpenCreator={openCreator}

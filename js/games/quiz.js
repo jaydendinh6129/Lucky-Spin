@@ -21,10 +21,12 @@ function QuizMedia({ media, lang, size = 'lg' }) {
 }
 
 /* Theme picker shown on the setup screen; switching opens the other theme (same as the sidebar) */
-function QuizThemeCards({ t, lang, currentId, prefs, sub, onPick }) {
+function QuizThemeCards({ t, lang, currentId, prefs, sub, onPick, custom = false }) {
+  const list = QUIZ_THEMES.filter((th) => !!th.custom === custom);
+  if (!list.length) return null;
   return (
     <div className="grid grid-cols-2 gap-2.5">
-      {QUIZ_THEMES.filter((th) => !th.custom).map((th) => {
+      {list.map((th) => {
         const active = th.id === currentId;
         const n = quizPool(th.id, prefs).length;
         const mix = difficultyMix(quizPool(th.id, { ...prefs, difficulty: 'all' }));
@@ -265,7 +267,14 @@ function QuizGame({ ctx }) {
               <h3 className="text-lg font-black mt-0.5">{t.chooseTheme}</h3>
             </div>
             <QuizThemeCards t={t} lang={lang} currentId={theme.id} prefs={prefs} sub={sub}
-              onPick={(th) => { if (th.id !== theme.id) { sfx('click'); openItem(th.custom ? 'mygames' : 'quiz', `quiz-${th.id}`); } }} />
+              onPick={(th) => { if (th.id !== theme.id) { sfx('click'); openItem('quiz', `quiz-${th.id}`); } }} />
+            {QUIZ_THEMES.some((th) => th.custom) && (
+              <>
+                <div className="text-[11px] uppercase tracking-[0.25em] text-white/55 pt-1">🎓 {t.myGames}</div>
+                <QuizThemeCards t={t} lang={lang} currentId={theme.id} prefs={{ ...prefs, ruleset: 'custom', difficulty: 'all' }} sub={sub} custom
+                  onPick={(th) => { if (th.id !== theme.id) { sfx('click'); openItem('quiz', `quiz-${th.id}`); } }} />
+              </>
+            )}
           </>
         )}
         <div className="space-y-3 border-t border-white/10 pt-4">

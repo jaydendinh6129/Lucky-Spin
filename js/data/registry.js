@@ -38,11 +38,6 @@ const GAME_REGISTRY = {
       players: [1, 12], duration: '5 min', scoring: 'points', difficulty: th.difficulty,
     }])),
   },
-  /* Custom games made in the Creator. Filled at runtime by syncCustomGames(). */
-  mygames: {
-    id: 'mygames', icon: '🎓', accent: '#a78bfa', type: 'games',
-    games: {},
-  },
   minigames: {
     id: 'minigames', icon: '🎲', accent: '#34d399', type: 'games',
     games: {
@@ -68,20 +63,22 @@ const GAME_REGISTRY = {
 
 const GAME_MODES = Object.values(GAME_REGISTRY).map((m) => ({ ...m, items: Object.values(m.games) }));
 
-/* Custom games arrive async from IndexedDB. Both GAME_REGISTRY.mygames.games and
- * the matching GAME_MODES entry are mutated in place so every consumer (sidebar,
+/* Custom games are quizzes, so they sit inside the Quiz mode after the built-in
+ * themes. They arrive async from IndexedDB; GAME_REGISTRY.quiz.games and the
+ * matching GAME_MODES entry are mutated in place so every consumer (sidebar,
  * findGame, gameMeta) sees them without re-importing anything. */
+const BUILTIN_QUIZ_GAMES = { ...GAME_REGISTRY.quiz.games };
 const syncCustomGames = (customThemes) => {
-  const games = {};
+  const games = { ...BUILTIN_QUIZ_GAMES };
   customThemes.forEach((th) => {
     games[`quiz-${th.id}`] = {
       id: `quiz-${th.id}`, icon: th.icon, plan: 'free', component: 'quiz',
-      quizTheme: th.id, customGameId: th.gameId,
+      quizTheme: th.id, customGameId: th.gameId, custom: true,
       players: [1, 12], duration: '5 min', scoring: 'points', difficulty: th.difficulty,
     };
   });
-  GAME_REGISTRY.mygames.games = games;
-  const mode = GAME_MODES.find((m) => m.id === 'mygames');
+  GAME_REGISTRY.quiz.games = games;
+  const mode = GAME_MODES.find((m) => m.id === 'quiz');
   if (mode) mode.items = Object.values(games);
   return games;
 };
@@ -97,7 +94,6 @@ const MODE_TEXT = {
     battle:    { title: 'Battle',            desc: 'Challenge each other' },
     king:      { title: 'King of the Table', desc: 'Winner stays' },
     quiz:      { title: 'Quiz',              desc: 'Test your knowledge' },
-    mygames:   { title: 'My Games',          desc: 'Games you created' },
     minigames: { title: 'Mini Games',        desc: 'Quick party games' },
     cards:     { title: 'Cards',             desc: 'Draw your fate' },
   },
@@ -106,7 +102,6 @@ const MODE_TEXT = {
     battle:    { title: 'Đấu tay đôi',  desc: 'Thách đấu nhau' },
     king:      { title: 'Vua bàn nhậu', desc: 'Thắng thì ở lại' },
     quiz:      { title: 'Đố vui',       desc: 'Thử kiến thức' },
-    mygames:   { title: 'Trò của tôi',  desc: 'Game bạn tự tạo' },
     minigames: { title: 'Trò chơi nhỏ', desc: 'Chơi nhanh gọn' },
     cards:     { title: 'Bốc bài',      desc: 'Rút lá số phận' },
   },
