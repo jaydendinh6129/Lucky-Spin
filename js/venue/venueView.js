@@ -33,10 +33,7 @@ function QrCode({ text, size = 240 }) {
   );
 }
 
-function Field({ label, children }) {
-  return <label className="block"><span className="block text-xs font-bold uppercase tracking-wider text-white/55 mb-1">{label}</span>{children}</label>;
-}
-const inputCls = 'w-full rounded-2xl px-4 py-2.5 bg-black/25 placeholder-white/40 border border-white/15 focus:outline-none focus:border-white/40';
+/* Field and inputCls are shared — see js/components/ui.js */
 
 function VenueView({ t, lang, venue, setVenue, sub, session, setPlayers, stage, host, sfx, showToast, onBack, onBigScreen }) {
   const fileRef = useRef(null);

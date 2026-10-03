@@ -115,6 +115,25 @@ function Toast({ toast, onDismiss }) {
  *  Header
  * ============================================================ */
 
+/* Labelled form field. `hint` and `error` are optional, so the Venue screens
+ * can keep calling it with just a label. Shared because creator.js and
+ * venueView.js both used to declare their own `Field`, and whichever loaded
+ * last silently won — the Creator's inline errors never rendered. */
+function Field({ label, hint, error, children }) {
+  return (
+    <label className="block">
+      <span className="flex items-baseline justify-between gap-2 mb-1">
+        <span className="text-xs font-bold uppercase tracking-wider text-white/55">{label}</span>
+        {hint && <span className="text-[11px] text-white/40">{hint}</span>}
+      </span>
+      {children}
+      {error && <span className="block text-[11px] text-red-300 mt-1">⚠ {error}</span>}
+    </label>
+  );
+}
+const inputCls = 'w-full rounded-2xl px-4 py-2.5 bg-black/25 placeholder-white/40 border border-white/15 focus:outline-none focus:border-white/40';
+const errCls = 'border-red-400/70';
+
 function Header({ t, theme, themeText, subtitle, brand, onMenu, soundOn, onToggleSound, onShareWheel, party, onToggleParty }) {
   return (
     <header

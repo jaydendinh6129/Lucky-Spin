@@ -4,11 +4,16 @@
 
 function useTimer() {
   const [snap, setSnap] = useState({ ms: 0, total: 0, running: false });
-  const ref = useRef({ end: 0, remain: 0, total: 0, raf: 0, onDone: null });
+  const ref = useRef({ end: 0, remain: 0, total: 0, raf: 0, onDone: null, lastSet: 0 });
   const clear = () => { cancelAnimationFrame(ref.current.raf); ref.current.raf = 0; };
 
+  /* The clock still ticks every frame so the deadline is exact, but React only
+   * re-renders ~25×/s: a game screen re-rendering 60×/s was the single biggest
+   * runtime cost on phones. TimerRing smooths the gaps with a CSS transition. */
+  const TICK_MS = 40;
   const tick = useCallback(() => {
-    const r = Math.max(0, ref.current.end - performance.now());
+    const now = performance.now();
+    const r = Math.max(0, ref.current.end - now);
     if (r <= 0) {
       clear();
       setSnap({ ms: 0, total: ref.current.total, running: false });
@@ -17,13 +22,16 @@ function useTimer() {
       if (cb) cb();
       return;
     }
-    setSnap({ ms: r, total: ref.current.total, running: true });
+    if (now - ref.current.lastSet >= TICK_MS) {
+      ref.current.lastSet = now;
+      setSnap({ ms: r, total: ref.current.total, running: true });
+    }
     ref.current.raf = requestAnimationFrame(tick);
   }, []);
 
   const start = useCallback((ms, onDone) => {
     clear();
-    ref.current = { end: performance.now() + ms, remain: 0, total: ms, raf: 0, onDone: onDone || null };
+    ref.current = { end: performance.now() + ms, remain: 0, total: ms, raf: 0, onDone: onDone || null, lastSet: 0 };
     setSnap({ ms, total: ms, running: true });
     ref.current.raf = requestAnimationFrame(tick);
   }, [tick]);
@@ -48,7 +56,7 @@ function useTimer() {
   }, []);
   const reset = useCallback(() => {
     clear();
-    ref.current = { end: 0, remain: 0, total: 0, raf: 0, onDone: null };
+    ref.current = { end: 0, remain: 0, total: 0, raf: 0, onDone: null, lastSet: 0 };
     setSnap({ ms: 0, total: 0, running: false });
   }, []);
 
@@ -59,9 +67,10 @@ function useTimer() {
 /* Count-up stopwatch (memory game) */
 function useStopwatch() {
   const [ms, setMs] = useState(0);
-  const ref = useRef({ start: 0, raf: 0 });
+  const ref = useRef({ start: 0, raf: 0, lastSet: 0 });
   const tick = useCallback(() => {
-    setMs(performance.now() - ref.current.start);
+    const now = performance.now();
+    if (now - ref.current.lastSet >= 50) { ref.current.lastSet = now; setMs(now - ref.current.start); }   // display resolution is 0.1 s anyway
     ref.current.raf = requestAnimationFrame(tick);
   }, []);
   const start = useCallback(() => {

@@ -4,7 +4,7 @@
 
 **JParty** is a fun, social party-game platform — for drinking games and friends hanging out, group battles, quiz competitions, card games, and just as happily for classrooms and small-group activities.
 
-It grew out of Party Spinner: the original wheel plus Battle, King of the Table, a theme-based Quiz, Mini Games and Cards, a shared party session, a FREE / PRO / MAX plan layer and (MAX) venue branding with real-time multiplayer. Offline-ready, no build step — plain JSX compiled in the browser.
+It grew out of Party Spinner: the original wheel plus Battle, King of the Table, a theme-based Quiz, Mini Games and Cards, a shared party session, a FREE / PRO / MAX plan layer and (MAX) venue branding with real-time multiplayer. Offline-ready and npm-free — the JSX is compiled ahead of time by a small build script that needs nothing but macOS.
 
 > **Working on the code (humans or AI agents)?** Start with [`CLAUDE.md`](CLAUDE.md) (conventions, rules, checklists) and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (boot order, routing, game-engine state machine, realtime protocol, and a verified index of every top-level function/component per file).
 
@@ -84,3 +84,22 @@ sw.js                      service worker (network-first for our files, cache-fi
 Adding a game: add a `GAME_META_TEXT` entry and a registry item in `js/data/registry.js`, write a component that uses `useGameEngine` + the shared game UI, and map its `component` key in `gameComponents()` (`js/app.js`).
 
 Data is stored only in `localStorage` under `party_spinner_v1`.
+
+## Development
+
+```bash
+python3 -m http.server 8080      # then open /dev.html to develop
+./tools/build.sh                 # before committing: regenerates dist/, index.html, sw.js
+```
+
+`dev.html` compiles `js/**` in the browser, so a reload shows your edit with no build. `index.html` is **generated** — the build pre-compiles the JSX into `dist/app.js` + `dist/data.js` and drops the Babel and Tailwind CDNs, which is what makes the live site start fast:
+
+| | dev.html | index.html (built) |
+| --- | --- | --- |
+| Requests | 53 | 7 |
+| Third-party JS at startup | Babel 3 MB + Tailwind JIT | React + confetti only |
+| JSX compiled in the browser | ~760 ms | none |
+| DOMContentLoaded, cold cache | ~1.5 s | **~85 ms** |
+| Transferred (gzip) | — | ~237 KB, then served by the service worker |
+
+`css/tailwind.css` is generated too: run `osascript -l JavaScript tools/tw-extract.js`, open `tools/tw.html`, save the result over `css/tailwind.css`. Do that whenever you introduce a Tailwind class the source did not contain before.

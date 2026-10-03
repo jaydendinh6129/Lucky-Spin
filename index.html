@@ -12,84 +12,31 @@
 <meta property="og:title" content="JParty 🎉" />
 <meta property="og:description" content="Spin, battle, quiz and draw your fate — for parties, friends and classrooms." />
 <title>JParty 🎉</title>
+<!-- Built by tools/build.sh from dev.html — do not edit by hand -->
 <link rel="icon" type="image/svg+xml" href="icon.svg" />
 <link rel="manifest" href="manifest.webmanifest" />
-<link rel="stylesheet" href="css/app.css?v=2.6.1" />
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/app.css?v=vdylz2" />
+<link rel="stylesheet" href="css/tailwind.css?v=vdylz2" />
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 <body class="text-white">
 <div id="root"><div class="boot" aria-hidden="true">🎯</div></div>
 <noscript><p style="padding:2rem;text-align:center">JParty needs JavaScript to run.</p></noscript>
 
-<!-- Source files are plain JSX compiled in the browser by Babel standalone, in this order.
-     Serve the folder over HTTP (e.g. `python3 -m http.server`) — file:// cannot load them. -->
 <!-- engine: utilities & constants first -->
-<script type="text/babel" data-presets="env,react" src="js/engine/util.js?v=2.6.1"></script>
+<script src="dist/data.js?v=vdylz2"></script>
+<script src="dist/app.js?v=vdylz2"></script>
 <!-- data -->
-<script type="text/babel" data-presets="env,react" src="js/data/themes.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/data/i18n.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/data/challenges.js?v=2.6.1"></script>
-<!-- quiz content packs: plain JS (no Babel) so hundreds of questions load instantly; each registers one theme -->
-<script src="js/data/quiz/animals.js?v=2.6.1"></script>
-<script src="js/data/quiz/flags.js?v=2.6.1"></script>
-<script src="js/data/quiz/iconic-animals.js?v=2.6.1"></script>
-<script src="js/data/quiz/mix.js?v=2.6.1"></script>
-<!-- quiz engine must run before the registry -->
-<script type="text/babel" data-presets="env,react" src="js/quiz/quizEngine.js?v=2.6.1"></script>
-<!-- user-created content: store (IndexedDB) then the bridge into the quiz engine -->
-<script type="text/babel" data-presets="env,react" src="js/content/store.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/content/customGames.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/data/cards.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/data/registry.js?v=2.6.1"></script>
 <!-- engines -->
-<script type="text/babel" data-presets="env,react" src="js/engine/audio.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/engine/effects.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/engine/randomEngine.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/engine/scoreEngine.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/engine/timerEngine.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/engine/playerEngine.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/engine/gameEngine.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/engine/sessionEngine.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/subscription/plans.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/venue/venue.js?v=2.6.1"></script>
 <!-- components -->
-<script type="text/babel" data-presets="env,react" src="js/components/ui.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/components/premium.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/components/wheel.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/components/items.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/components/reveals.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/components/modals.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/components/game.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/components/sidebar.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/components/creator.js?v=2.6.1"></script>
 <!-- realtime & venue (MAX) -->
-<script type="text/babel" data-presets="env,react" src="js/realtime/transport.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/realtime/host.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/realtime/player.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/venue/venueView.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/venue/bigscreen.js?v=2.6.1"></script>
 <!-- games -->
-<script type="text/babel" data-presets="env,react" src="js/games/spinner.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/games/party.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/games/battle.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/games/king.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/games/quiz.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/games/minigames.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/games/cards.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/games/votecards.js?v=2.6.1"></script>
-<script type="text/babel" data-presets="env,react" src="js/games/partygames.js?v=2.6.1"></script>
 <!-- app root -->
-<script type="text/babel" data-presets="env,react" src="js/app.js?v=2.6.1"></script>
-
 <script>
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./sw.js').catch(function () {});
-    });
+    window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js').catch(function () {}); });
   }
 </script>
 </body>

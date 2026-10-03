@@ -12,20 +12,7 @@ const TIMER_CHOICES = [0, 10, 20, 30, 60];
 
 /* ---------- shared bits ---------- */
 
-function Field({ label, hint, error, children }) {
-  return (
-    <label className="block">
-      <span className="flex items-baseline justify-between gap-2 mb-1">
-        <span className="text-xs font-bold uppercase tracking-wider text-white/55">{label}</span>
-        {hint && <span className="text-[11px] text-white/40">{hint}</span>}
-      </span>
-      {children}
-      {error && <span className="block text-[11px] text-red-300 mt-1">⚠ {error}</span>}
-    </label>
-  );
-}
-const inputCls = 'w-full rounded-2xl px-4 py-2.5 bg-black/25 placeholder-white/40 border border-white/15 focus:outline-none focus:border-white/40';
-const errCls = 'border-red-400/70';
+/* Field, inputCls and errCls are shared — see js/components/ui.js */
 
 /* Bilingual text input: EN is required, VI optional and falls back to EN */
 function BiInput({ value, onChange, placeholder, lang, error, textarea }) {
